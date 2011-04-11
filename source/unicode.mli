@@ -2,7 +2,7 @@ type ucs4 = Int32.t
 module UCS4: sig
 	include module type of Int32 with type t = ucs4
 	val of_int: int -> t
-end;;
+end
 type utf8_char = char
 type utf8_string = string
 type utf16_char = int
@@ -17,6 +17,10 @@ val utf16_sequence: ?invalid_sequence:exn -> utf16_char -> int
 val utf16_get_code: ?invalid_sequence:exn -> utf16_string -> int ref -> int
 val utf16_set_code: ?invalid_sequence:exn -> utf16_string -> int ref -> int -> unit
 val utf16_lead: utf16_string -> int -> int
+val utf32_sequence: ?invalid_sequence:exn -> utf32_char -> int
+val utf32_get_code: ?invalid_sequence:exn -> utf32_string -> int ref -> int
+val utf32_set_code: ?invalid_sequence:exn -> utf32_string -> int ref -> int -> unit
+val utf32_lead: utf32_string -> int -> int
 val utf8_of_utf16: ?invalid_sequence:exn -> utf16_string -> utf8_string
 val utf8_of_utf32: ?invalid_sequence:exn -> utf32_string -> utf8_string
 val utf16_of_utf8: ?invalid_sequence:exn -> utf8_string -> utf16_string
@@ -54,9 +58,9 @@ module UTF8: sig
 	val rcontains_from: t -> int -> char -> bool
 	val sequence: ?invalid_sequence:exn -> elm -> int
 	val max_sequence: int
-	val lead: t -> int -> int
 	val get_code: ?invalid_sequence:exn -> t -> int ref -> int
 	val set_code: ?invalid_sequence:exn -> t -> int ref -> int -> unit
+	val lead: t -> int -> int
 	val of_utf16: ?invalid_sequence:exn -> utf16_string -> t
 	val of_utf32: ?invalid_sequence:exn -> utf32_string -> t
 	val of_array: elm array -> t
@@ -79,9 +83,9 @@ module UTF16: sig
 	external blit: t -> t -> unit = "caml_ba_blit"
 	val sequence: ?invalid_sequence:exn -> elm -> int
 	val max_sequence: int
-	val lead: t -> int -> int
 	val get_code: ?invalid_sequence:exn -> t -> int ref -> int
 	val set_code: ?invalid_sequence:exn -> t -> int ref -> int -> unit
+	val lead: t -> int -> int
 	val of_utf8: ?invalid_sequence:exn -> utf8_string -> t
 	val of_utf32: ?invalid_sequence:exn -> utf32_string -> t
 	val of_array: elm array -> t
@@ -104,9 +108,9 @@ module UTF32: sig
 	external blit: t -> t -> unit = "caml_ba_blit"
 	val sequence: ?invalid_sequence:exn -> elm -> int
 	val max_sequence: int
-	val lead: t -> int -> int
 	val get_code: ?invalid_sequence:exn -> t -> int ref -> int
 	val set_code: ?invalid_sequence:exn -> t -> int ref -> int -> unit
+	val lead: t -> int -> int
 	val of_utf8: ?invalid_sequence:exn -> utf8_string -> t
 	val of_utf16: ?invalid_sequence:exn -> utf16_string -> t
 	val of_array: elm array -> t
