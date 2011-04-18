@@ -183,7 +183,7 @@ let utf16_get_code ?(invalid_sequence: exn option) (source: utf16_string) (index
 		incr index;
 		lead
 	) else if lead >= 0xd800 && lead <= 0xdbff then (
-		if Bigarray.Array1.dim source <= !index + 2 then (
+		if Bigarray.Array1.dim source <= !index + 1 then (
 			(* leading, but no trailing *)
 			match invalid_sequence with
 			| None ->
@@ -201,9 +201,7 @@ let utf16_get_code ?(invalid_sequence: exn option) (source: utf16_string) (index
 				| Some exn -> raise exn
 			) else (
 				index := !index + 2;
-				let result = (lead land (1 lsl 10 - 1)) lsl 10 lor (tail land (1 lsl 10 - 1)) in
-				check_surrogate_pair invalid_sequence result;
-				result
+				((lead land (1 lsl 10 - 1)) lsl 10 lor (tail land (1 lsl 10 - 1))) + 0x10000
 			)
 		)
 	) else (
@@ -228,7 +226,7 @@ let utf16_set_code ?(invalid_sequence: exn option) (dest: utf16_string) (index: 
 			| None -> ()
 			| Some exn -> raise exn
 		);
-		Bigarray.Array1.set dest !index (0xd800 lor (c2 lsr 10));
+		Bigarray.Array1.set dest !index (0xd800 lor ((c2 lsr 10) land (1 lsl 10 - 1)));
 		Bigarray.Array1.set dest (!index + 1) (0xdc00 lor (c2 land (1 lsl 10 - 1)));
 		index := !index + 2
 	)
@@ -256,7 +254,7 @@ let utf32_get_code ?(invalid_sequence: exn option) (source: utf32_string) (index
 );;
 
 let utf32_set_code ?(invalid_sequence: exn option) (dest: utf32_string) (index: int ref) (code: int): unit = (
-	ignore invalid_sequence; 	(* without checking surrogate pair in set *)
+	ignore invalid_sequence; (* without checking surrogate pair in set *)
 	Bigarray.Array1.set dest !index (UCS4.of_int code);
 	incr index
 );;
