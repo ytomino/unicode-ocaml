@@ -15,12 +15,16 @@ RM=rm
 DIRSEP=/
 endif
 
+ifneq ($(shell rlwrap --version),)
+RLWRAP=rlwrap
+endif
+
 BUILDDIR=build
 
 export LD_LIBRARY_PATH=.
 export CAML_LD_LIBRARY_PATH=$(BUILDDIR)/stublibs
 
-.PHONY: test clean
+.PHONY: test interacitve clean
 
 test: $(BUILDDIR)/unicode.cma
 	$(OCAMLC) -c -o $(BUILDDIR)/test.cmo -I $(BUILDDIR) test.ml
@@ -31,6 +35,9 @@ ifneq ($(OCAMLOPT),)
 	$(OCAMLOPT) -o $(BUILDDIR)/test.opt.exe -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/test.cmx
 	$(BUILDDIR)$(DIRSEP)test.opt.exe
 endif
+
+interactive: $(BUILDDIR)/unicode.cma
+	$(RLWRAP) ocaml -I $(BUILDDIR) bigarray.cma unicode.cma
 
 $(BUILDDIR)/unicode.cma: $(wildcard ../source/*.ml*)
 	make -C ..$(DIRSEP)source install DESTDIR=$(abspath $(BUILDDIR))
