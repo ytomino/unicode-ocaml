@@ -30,12 +30,12 @@ functions
 ``utf_X_of_utf_X`` converting all elements of the string
 ================== ======================================================
 
-policy for handling invalid sequence
+policy for handling illegal sequence
 ++++++++++++++++++++++++++++++++++++
 
-On invalid sequence that is shortage/too many trailing elements in UTF-8/16 or
+On illegal sequence that is shortage/too many trailing elements in UTF-8/16 or
 surrogate pair in UTF-8/32,
-if optional parameter ?invalid_sequence is given, the function raises it.
+if optional parameter ?illegal_sequence is given, the function raises it.
 
 Otherwise,
 
