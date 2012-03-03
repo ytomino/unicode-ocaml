@@ -1,12 +1,42 @@
 very very simple unicode library for Objective-Caml
 ===================================================
 
-Introduction
+What's this?
 ------------
 
 This library has simple purpose for converting between UTF-8/16/32.
 
-types
+How to make
+-----------
+
+Install
++++++++
+
+::
+
+ make install DESTDIR=`ocamlc -where`
+
+Or use your preferred directory for DESTDIR.
+In this case, set DESTDIR/stublibs to CAML_LD_LIBRARY_PATH.
+
+Uninstall
++++++++++
+
+::
+
+ make uninstall DESTDIR=`ocamlc -where`
+
+Build examples
+++++++++++++++
+
+::
+
+ make -C examples
+
+Introduction
+------------
+
+Types
 +++++
 
 ================ ===================================================================
@@ -19,7 +49,7 @@ types
 ``utf32_string`` string of UTF-32 ( = ``Bigarray.Array1.t`` )
 ================ ===================================================================
 
-functions
+Functions
 +++++++++
 
 ================== ======================================================
@@ -30,7 +60,7 @@ functions
 ``utf_X_of_utf_X`` converting all elements of the string
 ================== ======================================================
 
-policy for handling illegal sequence
+Policy for handling illegal sequence
 ++++++++++++++++++++++++++++++++++++
 
 On illegal sequence that is shortage/too many trailing elements in UTF-8/16 or
