@@ -218,7 +218,7 @@ let utf16_set_code ?(illegal_sequence: exn option) (dest: utf16_string) (index: 
 	)
 );;
 
-let rec utf16_lead (s: utf16_string) (i: int): int = (
+let utf16_lead (s: utf16_string) (i: int): int = (
 	if i > 0 &&
 		let c = Bigarray.Array1.get s i in
 		c >= 0xdc00 && c <= 0xdfff &&
