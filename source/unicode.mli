@@ -69,7 +69,7 @@ module UTF16: sig
 	type elm = utf16_char
 	type t = utf16_string
 	external compare: t -> t -> int = "%compare"
-	val length: t -> int
+	external length: t -> int = "%caml_ba_dim_1"
 	external get: t -> int -> elm = "%caml_ba_ref_1"
 	external unsafe_get: t -> int -> elm = "%caml_ba_unsafe_ref_1"
 	external set: t -> int -> elm -> unit = "%caml_ba_set_1"
@@ -78,7 +78,7 @@ module UTF16: sig
 	val create: int -> t
 	val copy: t -> t
 	val append: t -> t -> t
-	val sub: t -> int -> int -> t
+	external sub: t -> int -> int -> t = "caml_ba_sub"
 	external fill: t -> elm -> unit = "caml_ba_fill"
 	external blit: t -> t -> unit = "caml_ba_blit"
 	val sequence: ?illegal_sequence:exn -> elm -> int
@@ -94,7 +94,7 @@ module UTF32: sig
 	type elm = utf32_char
 	type t = utf32_string
 	external compare: t -> t -> int = "%compare"
-	val length: t -> int
+	external length: t -> int = "%caml_ba_dim_1"
 	external get: t -> int -> elm = "%caml_ba_ref_1"
 	external unsafe_get: t -> int -> elm = "%caml_ba_unsafe_ref_1"
 	external set: t -> int -> elm -> unit = "%caml_ba_set_1"
@@ -103,7 +103,7 @@ module UTF32: sig
 	val create: int -> t
 	val copy: t -> t
 	val append: t -> t -> t
-	val sub: t -> int -> int -> t
+	external sub: t -> int -> int -> t = "caml_ba_sub"
 	external fill: t -> elm -> unit = "caml_ba_fill"
 	external blit: t -> t -> unit = "caml_ba_blit"
 	val sequence: ?illegal_sequence:exn -> elm -> int
