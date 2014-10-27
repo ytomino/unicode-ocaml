@@ -131,18 +131,18 @@ let utf8_set_code ?(illegal_sequence: exn option) (dest: utf8_string) (index: in
 	ignore illegal_sequence; (* without checking surrogate pair in set *)
 	let rec tails length dest index code = (
 		if length <= 0 then () else (
-			String.set dest index (char_of_int (code land 0b00111111 lor 0b10000000));
+			Bytes.set (Bytes.unsafe_of_string dest) index (char_of_int (code land 0b00111111 lor 0b10000000));
 			tails (pred length) dest (pred index) (code lsr 6)
 		)
 	) in
 	let length = utf8_storing_length code in
 	if length = 1 then (
-		String.set dest !index (char_of_int code);
+		Bytes.set (Bytes.unsafe_of_string dest) !index (char_of_int code);
 		incr index
 	) else (
 		let length_m_1 = length - 1 in
 		let leading = char_of_int (code lsr (length_m_1 * 6) lor (0xff lxor (1 lsl (8 - length) - 1))) in
-		String.set dest !index leading;
+		Bytes.set (Bytes.unsafe_of_string dest) !index leading;
 		index := !index + length;
 		tails length_m_1 dest (!index - 1) code
 	)
@@ -150,11 +150,11 @@ let utf8_set_code ?(illegal_sequence: exn option) (dest: utf8_string) (index: in
 
 let utf8_lead (s: utf8_string) (i: int): int = (
 	let rec lead s i = (
-		if i = 0 || int_of_char s.[i] land 0b11000000 <> 0b10000000 then i else
+		if i = 0 || int_of_char (String.get s i) land 0b11000000 <> 0b10000000 then i else
 		lead s (i - 1)
 	) in
 	let first = lead s i in
-	if first + utf8_sequence s.[first] > i then first else i
+	if first + utf8_sequence (String.get s first) > i then first else i
 );;
 
 let utf16_sequence ?(illegal_sequence: exn option) (lead: utf16_char) = (
@@ -249,7 +249,7 @@ let utf32_lead (_: utf32_string) (i: int): int = i;;
 
 let utf8_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string): utf8_string = (
 	let source_length = Bigarray.Array1.dim source in
-	let result = String.create (3 * source_length) in
+	let result = Bytes.unsafe_to_string (Bytes.create (3 * source_length)) in
 	let rec make illegal_sequence length source i result j = (
 		if !i >= length then String.sub result 0 !j else (
 			let code = utf16_get_code ?illegal_sequence source i in
@@ -262,7 +262,7 @@ let utf8_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string): utf8_s
 
 let utf8_of_utf32 ?(illegal_sequence: exn option) (source: utf32_string): utf8_string = (
 	let source_length = Bigarray.Array1.dim source in
-	let result = String.create (6 * source_length) in
+	let result = Bytes.unsafe_to_string (Bytes.create (6 * source_length)) in
 	let rec make illegal_sequence length source i result j = (
 		if !i >= length then String.sub result 0 !j else (
 			let code = utf32_get_code ?illegal_sequence source i in
@@ -328,8 +328,15 @@ let utf32_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string): utf32
 module UTF8 = struct
 	type elm = utf8_char;;
 	include String;;
+	external set: t -> int -> char -> unit = "%string_safe_set";;
+	external unsafe_set: t -> int -> char -> unit = "%string_unsafe_set";;
 	let empty = "";;
+	external create: int -> t = "caml_create_string";;
 	let append = ( ^ );;
+	let fill s ofs len c = Bytes.fill (Bytes.unsafe_of_string s) ofs len c;;
+	external unsafe_fill: t -> int -> int -> char -> unit = "caml_fill_string" "noalloc"
+	let blit s1 ofs1 s2 ofs2 len = Bytes.blit_string s1 ofs1 (Bytes.unsafe_of_string s2) ofs2 len;;
+	external unsafe_blit: t -> int -> t -> int -> int -> unit = "caml_blit_string" "noalloc"
 	let sequence = utf8_sequence;;
 	let max_sequence = 6;;
 	let get_code = utf8_get_code;;
@@ -339,11 +346,11 @@ module UTF8 = struct
 	let of_utf32 = utf8_of_utf32;;
 	let of_array (source: elm array): t = (
 		let length = Array.length source in
-		let result = create length in
+		let result = Bytes.create length in
 		for i = 0 to length - 1 do
-			unsafe_set result i (Array.unsafe_get source i)
+			Bytes.unsafe_set result i (Array.unsafe_get source i)
 		done;
-		result
+		Bytes.unsafe_to_string result
 	);;
 end;;
 

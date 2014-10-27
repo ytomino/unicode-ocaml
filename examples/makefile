@@ -27,11 +27,11 @@ export CAML_LD_LIBRARY_PATH=$(BUILDDIR)/stublibs
 .PHONY: test interacitve clean
 
 test: $(BUILDDIR)/unicode.cma
-	$(OCAMLC) -c -o $(BUILDDIR)/test.cmo -I $(BUILDDIR) test.ml
+	$(OCAMLC) -c -o $(BUILDDIR)/test.cmo -I $(BUILDDIR) $(OCAMLCFLAGS) test.ml
 	$(OCAMLC) -o $(BUILDDIR)/test.byte.exe -I $(BUILDDIR) bigarray.cma unicode.cma $(BUILDDIR)/test.cmo
 	$(BUILDDIR)$(DIRSEP)test.byte.exe
 ifneq ($(OCAMLOPT),)
-	$(OCAMLOPT) -c -o $(BUILDDIR)/test.cmx -I $(BUILDDIR) test.ml
+	$(OCAMLOPT) -c -o $(BUILDDIR)/test.cmx -I $(BUILDDIR) $(OCAMLCFLAGS) test.ml
 	$(OCAMLOPT) -o $(BUILDDIR)/test.opt.exe -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/test.cmx
 	$(BUILDDIR)$(DIRSEP)test.opt.exe
 endif
