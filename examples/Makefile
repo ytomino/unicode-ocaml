@@ -21,9 +21,13 @@ empty=
 
 ifneq ($(ComSpec),)
 RM=del
+LINK=linkd $2 $1
+UNLINK=linkd $1 /d
 DIRSEP=\$(empty)
 else
 RM=rm
+LINK=ln -s $1 $2
+UNLINK=rm $1
 DIRSEP=/
 endif
 
@@ -48,12 +52,13 @@ interactive: $(BUILDDIR)/unicode.cma
 	$(RLWRAP) ocaml -I $(BUILDDIR) bigarray.cma unicode.cma
 
 $(BUILDDIR)/unicode.cma: $(wildcard ../source/*.ml*)
-	make -C ..$(DIRSEP)source install DESTDIR=$(abspath $(BUILDDIR))
+	$(MAKE) -C ..$(DIRSEP)source install DESTDIR=$(abspath $(BUILDDIR))
 
 $(BINLN):
-	ln -s $(BUILDDIR) $(BINLN)
+	-$(call LINK,$(BUILDDIR),$(BINLN))
 
 clean:
-	make -C ..$(DIRSEP)source clean uninstall DESTDIR=$(abspath $(BUILDDIR))
-	-rm $(BUILDDIR)$(DIRSEP)test.* $(BINLN)
+	$(MAKE) -C ..$(DIRSEP)source clean uninstall DESTDIR=$(abspath $(BUILDDIR))
+	-$(RM) $(BUILDDIR)$(DIRSEP)test.*
+	-$(call UNLINK,$(BINLN))
 	-rmdir $(BUILDDIR)
