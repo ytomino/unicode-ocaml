@@ -53,7 +53,7 @@ OCAMLLIBDIR=$(shell $(OCAMLC) -where)
 endif
 
 DESTDIR=$(OCAMLLIBDIR)
-BUILDDIR=build
+BUILDDIR=$(TARGET).build
 
 all:
 
