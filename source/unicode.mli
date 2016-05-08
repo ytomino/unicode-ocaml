@@ -43,9 +43,9 @@ module UTF8: sig
 	val append: t -> t -> t
 	val sub: t -> int -> int -> t
 	val fill: t -> int -> int -> char -> unit [@@ocaml.deprecated]
-	external unsafe_fill: t -> int -> int -> char -> unit = "caml_fill_string" "noalloc" [@@ocaml.deprecated]
+	external unsafe_fill: t -> int -> int -> char -> unit = "caml_fill_string" [@@noalloc] [@@ocaml.deprecated]
 	val blit: t -> int -> t -> int -> int -> unit [@@ocaml.deprecated]
-	external unsafe_blit: t -> int -> t -> int -> int -> unit = "caml_blit_string" "noalloc" [@@ocaml.deprecated]
+	external unsafe_blit: t -> int -> t -> int -> int -> unit = "caml_blit_string" [@@noalloc] [@@ocaml.deprecated]
 	val concat: t -> t list -> t
 	val iter: (char -> unit) -> t -> unit
 	val escaped: t -> t
