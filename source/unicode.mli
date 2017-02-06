@@ -11,7 +11,7 @@ type utf32_char = UCS4.t
 type utf32_string = (UCS4.t, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 val utf8_sequence: ?illegal_sequence:exn -> utf8_char -> int
 val utf8_get_code: ?illegal_sequence:exn -> utf8_string -> int ref -> int
-val utf8_set_code: ?illegal_sequence:exn -> utf8_string -> int ref -> int -> unit
+val utf8_set_code: ?illegal_sequence:exn -> utf8_string -> int ref -> int -> unit [@@ocaml.deprecated]
 val utf8_lead: utf8_string -> int -> int
 val utf16_sequence: ?illegal_sequence:exn -> utf16_char -> int
 val utf16_get_code: ?illegal_sequence:exn -> utf16_string -> int ref -> int
