@@ -39,7 +39,7 @@ module UTF8: sig
 	val empty: t
 	external create: int -> t = "caml_create_string" [@@ocaml.deprecated]
 	val make: int -> char -> t
-	val copy: t -> t
+	val copy: t -> t [@@ocaml.deprecated]
 	val append: t -> t -> t
 	val sub: t -> int -> int -> t
 	val fill: t -> int -> int -> char -> unit [@@ocaml.deprecated]
