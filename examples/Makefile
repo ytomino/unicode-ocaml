@@ -52,13 +52,13 @@ interactive: $(BUILDDIR)/unicode.cma
 	$(RLWRAP) ocaml -I $(BUILDDIR) bigarray.cma unicode.cma
 
 $(BUILDDIR)/unicode.cma: $(wildcard ../source/*.ml*)
-	$(MAKE) -C ..$(DIRSEP)source install DESTDIR=$(abspath $(BUILDDIR))
+	$(MAKE) -C ..$(DIRSEP)source install INSTALLDIR=$(abspath $(BUILDDIR))
 
 $(BINLN):
 	-$(call LINK,$(BUILDDIR),$(BINLN))
 
 clean:
-	$(MAKE) -C ..$(DIRSEP)source clean uninstall DESTDIR=$(abspath $(BUILDDIR))
+	-$(MAKE) -C ..$(DIRSEP)source clean uninstall INSTALLDIR=$(abspath $(BUILDDIR))
 	-$(RM) $(BUILDDIR)$(DIRSEP)test.*
 	-$(call UNLINK,$(BINLN))
 	-rmdir $(BUILDDIR)
