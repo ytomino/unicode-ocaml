@@ -70,7 +70,7 @@ let utf8_sequence ?(illegal_sequence: exn option) (lead: utf8_char) = (
 	)
 );;
 
-let utf8_get_code ?(illegal_sequence: exn option) (source: utf8_string) (index: int ref): int = (
+let utf8_get_code ?(illegal_sequence: exn option) (source: utf8_string) (index: int ref): Uchar.t = (
 	let tails1 illegal_sequence length source index code = (
 		let rec tails2 illegal_sequence length source index code = (
 			if length <= 0 then code else (
@@ -104,12 +104,12 @@ let utf8_get_code ?(illegal_sequence: exn option) (source: utf8_string) (index: 
 		if utf8_storing_length result <> length then (
 			optional_raise illegal_sequence
 		);
-		result
+		Uchar.unsafe_of_int result
 	) in
 	let lead = int_of_char (String.get source !index) in
 	if lead land 0b10000000 = 0 then (
 		incr index;
-		lead
+		Uchar.unsafe_of_int lead
 	) else if lead land 0b11100000 = 0b11000000 then (
 		tails1 illegal_sequence 2 source index (lead land 0b00011111)
 	) else if lead land 0b11110000 = 0b11100000 then (
@@ -123,11 +123,12 @@ let utf8_get_code ?(illegal_sequence: exn option) (source: utf8_string) (index: 
 	) else (
 		optional_raise illegal_sequence;
 		incr index;
-		lead + 0x7fffff00 (* out of meaning code-points, by way of precaution *)
+		let fake = lead + 0x7fffff00 in (* out of meaning code-points, by way of precaution *)
+		Uchar.unsafe_of_int fake
 	)
 );;
 
-let utf8_set_code ?(illegal_sequence: exn option) (dest: bytes) (index: int ref) (code: int): unit = (
+let utf8_set_code ?(illegal_sequence: exn option) (dest: bytes) (index: int ref) (code: Uchar.t): unit = (
 	ignore illegal_sequence; (* without checking surrogate pair in set *)
 	let rec tails length dest index code = (
 		if length <= 0 then () else (
@@ -135,6 +136,7 @@ let utf8_set_code ?(illegal_sequence: exn option) (dest: bytes) (index: int ref)
 			tails (pred length) dest (pred index) (code lsr 6)
 		)
 	) in
+	let code = Uchar.to_int code in
 	let length = utf8_storing_length code in
 	if length = 1 then (
 		Bytes.set dest !index (char_of_int code);
@@ -168,11 +170,11 @@ let utf16_sequence ?(illegal_sequence: exn option) (lead: utf16_char) = (
 	)
 );;
 
-let utf16_get_code ?(illegal_sequence: exn option) (source: utf16_string) (index: int ref): int = (
+let utf16_get_code ?(illegal_sequence: exn option) (source: utf16_string) (index: int ref): Uchar.t = (
 	let lead = Bigarray.Array1.get source !index in
 	if lead >= 0 && lead <= 0xd7ff || lead >= 0xe000 && lead <= 0xffff then (
 		incr index;
-		lead
+		Uchar.unsafe_of_int lead
 	) else if lead >= 0xd800 && lead <= 0xdbff then (
 		let tail =
 			if Bigarray.Array1.dim source <= !index + 1 then (
@@ -193,17 +195,19 @@ let utf16_get_code ?(illegal_sequence: exn option) (source: utf16_string) (index
 				)
 			)
 		in
-		((lead land (1 lsl 10 - 1)) lsl 10 lor (tail land (1 lsl 10 - 1))) + 0x10000
+		let result = ((lead land (1 lsl 10 - 1)) lsl 10 lor (tail land (1 lsl 10 - 1))) + 0x10000 in
+		Uchar.unsafe_of_int result
 	) else (
 		(* illegal *)
 		optional_raise illegal_sequence;
 		incr index;
-		lead
+		Uchar.unsafe_of_int lead
 	)
 );;
 
-let utf16_set_code ?(illegal_sequence: exn option) (dest: utf16_string) (index: int ref) (code: int): unit = (
+let utf16_set_code ?(illegal_sequence: exn option) (dest: utf16_string) (index: int ref) (code: Uchar.t): unit = (
 	(* without checking surrogate pair in set *)
+	let code = Uchar.to_int code in
 	if code >= 0 && (* code <= 0xd7ff || code >= 0xe000 && *) code <= 0xffff then (
 		Bigarray.Array1.set dest !index code;
 		incr index
@@ -232,15 +236,17 @@ let utf32_sequence ?(illegal_sequence: exn option) (lead: utf32_char): int = (
 	1
 );;
 
-let utf32_get_code ?(illegal_sequence: exn option) (source: utf32_string) (index: int ref): int = (
+let utf32_get_code ?(illegal_sequence: exn option) (source: utf32_string) (index: int ref): Uchar.t = (
 	let result = Bigarray.Array1.get source !index in
-	check_surrogate_pair illegal_sequence (UCS4.to_int result);
+	let result = UCS4.to_int result in
+	check_surrogate_pair illegal_sequence result;
 	incr index;
-	UCS4.to_int result
+	Uchar.unsafe_of_int result
 );;
 
-let utf32_set_code ?(illegal_sequence: exn option) (dest: utf32_string) (index: int ref) (code: int): unit = (
+let utf32_set_code ?(illegal_sequence: exn option) (dest: utf32_string) (index: int ref) (code: Uchar.t): unit = (
 	ignore illegal_sequence; (* without checking surrogate pair in set *)
+	let code = Uchar.to_int code in
 	Bigarray.Array1.set dest !index (UCS4.of_int code);
 	incr index
 );;
