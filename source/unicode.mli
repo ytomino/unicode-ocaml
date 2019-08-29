@@ -11,7 +11,7 @@ type utf32_char = UCS4.t
 type utf32_string = (UCS4.t, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 val utf8_sequence: ?illegal_sequence:exn -> utf8_char -> int
 val utf8_get_code: ?illegal_sequence:exn -> utf8_string -> int ref -> int
-val utf8_set_code: ?illegal_sequence:exn -> utf8_string -> int ref -> int -> unit [@@ocaml.deprecated]
+val utf8_set_code: ?illegal_sequence:exn -> bytes -> int ref -> int -> unit [@@ocaml.deprecated]
 val utf8_lead: utf8_string -> int -> int
 val utf16_sequence: ?illegal_sequence:exn -> utf16_char -> int
 val utf16_get_code: ?illegal_sequence:exn -> utf16_string -> int ref -> int
@@ -34,18 +34,18 @@ module UTF8: sig
 	external length: t -> int = "%string_length"
 	external get: t -> int -> char = "%string_safe_get"
 	external unsafe_get: t -> int -> char = "%string_unsafe_get"
-	external set: t -> int -> char -> unit = "%string_safe_set" [@@ocaml.deprecated]
-	external unsafe_set: t -> int -> char -> unit = "%string_unsafe_set" [@@ocaml.deprecated]
+	external set: bytes -> int -> char -> unit = "%string_safe_set" [@@ocaml.deprecated]
+	external unsafe_set: bytes -> int -> char -> unit = "%string_unsafe_set" [@@ocaml.deprecated]
 	val empty: t
-	external create: int -> t = "caml_create_string" [@@ocaml.deprecated]
+	external create: int -> bytes = "caml_create_string" [@@ocaml.deprecated]
 	val make: int -> char -> t
 	val copy: t -> t [@@ocaml.deprecated]
 	val append: t -> t -> t
 	val sub: t -> int -> int -> t
-	val fill: t -> int -> int -> char -> unit [@@ocaml.deprecated]
-	external unsafe_fill: t -> int -> int -> char -> unit = "caml_fill_string" [@@noalloc] [@@ocaml.deprecated]
-	val blit: t -> int -> t -> int -> int -> unit [@@ocaml.deprecated]
-	external unsafe_blit: t -> int -> t -> int -> int -> unit = "caml_blit_string" [@@noalloc] [@@ocaml.deprecated]
+	val fill: bytes -> int -> int -> char -> unit [@@ocaml.deprecated]
+	external unsafe_fill: bytes -> int -> int -> char -> unit = "caml_fill_string" [@@noalloc] [@@ocaml.deprecated]
+	val blit: t -> int -> bytes -> int -> int -> unit [@@ocaml.deprecated]
+	external unsafe_blit: t -> int -> bytes -> int -> int -> unit = "caml_blit_string" [@@noalloc] [@@ocaml.deprecated]
 	val concat: t -> t list -> t
 	val iter: (char -> unit) -> t -> unit
 	val escaped: t -> t
@@ -59,7 +59,7 @@ module UTF8: sig
 	val sequence: ?illegal_sequence:exn -> elm -> int
 	val max_sequence: int
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> int
-	val set_code: ?illegal_sequence:exn -> t -> int ref -> int -> unit [@@ocaml.deprecated]
+	val set_code: ?illegal_sequence:exn -> bytes -> int ref -> int -> unit [@@ocaml.deprecated]
 	val lead: t -> int -> int
 	val of_utf16: ?illegal_sequence:exn -> utf16_string -> t
 	val of_utf32: ?illegal_sequence:exn -> utf32_string -> t
