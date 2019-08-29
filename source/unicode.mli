@@ -38,7 +38,6 @@ module UTF8: sig
 	external unsafe_set: bytes -> int -> char -> unit = "%string_unsafe_set" [@@ocaml.deprecated]
 	val empty: t
 	external create: int -> bytes = "caml_create_string" [@@ocaml.deprecated]
-	val make: int -> char -> t
 	val copy: t -> t [@@ocaml.deprecated]
 	val append: t -> t -> t
 	val sub: t -> int -> int -> t
@@ -46,16 +45,6 @@ module UTF8: sig
 	external unsafe_fill: bytes -> int -> int -> char -> unit = "caml_fill_string" [@@noalloc] [@@ocaml.deprecated]
 	val blit: t -> int -> bytes -> int -> int -> unit [@@ocaml.deprecated]
 	external unsafe_blit: t -> int -> bytes -> int -> int -> unit = "caml_blit_string" [@@noalloc] [@@ocaml.deprecated]
-	val concat: t -> t list -> t
-	val iter: (char -> unit) -> t -> unit
-	val escaped: t -> t
-	val index: t -> char -> int
-	val rindex: t -> char -> int
-	val index_from: t -> int -> char -> int
-	val rindex_from: t -> int -> char -> int
-	val contains: t -> char -> bool
-	val contains_from: t -> int -> char -> bool
-	val rcontains_from: t -> int -> char -> bool
 	val sequence: ?illegal_sequence:exn -> elm -> int
 	val max_sequence: int
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> int
