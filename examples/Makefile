@@ -25,16 +25,18 @@ empty=
 
 BUILDDIR=$(TARGET).build
 
-.PHONY: test interacitve clean
+.PHONY: all interacitve clean
 
-test: $(BUILDDIR)/unicode.cma $(BINLN)
-	$(OCAMLC) -c -o $(BUILDDIR)/test.cmo -I $(BUILDDIR) $(OCAMLCFLAGS) test.ml
-	$(OCAMLC) -o $(BUILDDIR)/test.byte.exe -I $(BUILDDIR) bigarray.cma unicode.cma $(BUILDDIR)/test.cmo
-	$(BUILDDIR)/test.byte.exe
+all: $(BUILDDIR)/test_conv.byte.exe $(BINLN)
+
+$(BUILDDIR)/%.byte.exe: %.ml $(BUILDDIR)/unicode.cma
+	$(OCAMLC) -c -o $(BUILDDIR)/$*.cmo -I $(BUILDDIR) $(OCAMLCFLAGS) $<
+	$(OCAMLC) -o $(BUILDDIR)/$*.byte.exe -I $(BUILDDIR) bigarray.cma unicode.cma $(BUILDDIR)/$*.cmo
+	$(BUILDDIR)/$*.byte.exe
 ifneq ($(OCAMLOPT),)
-	$(OCAMLOPT) -c -o $(BUILDDIR)/test.cmx -I $(BUILDDIR) $(OCAMLCFLAGS) test.ml
-	$(OCAMLOPT) -o $(BUILDDIR)/test.opt.exe -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/test.cmx
-	$(BUILDDIR)/test.opt.exe
+	$(OCAMLOPT) -c -o $(BUILDDIR)/$*.cmx -I $(BUILDDIR) $(OCAMLCFLAGS) $*.ml
+	$(OCAMLOPT) -o $(BUILDDIR)/$*.opt.exe -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/$*.cmx
+	$(BUILDDIR)/$*.opt.exe
 endif
 
 interactive: $(BUILDDIR)/unicode.cma
@@ -48,6 +50,6 @@ $(BINLN):
 
 clean:
 	-$(MAKE) -C ../source clean uninstall INSTALLDIR=$(abspath $(BUILDDIR))
-	-rm $(BUILDDIR)/test.*
+	-rm $(BUILDDIR)/*.exe $(BUILDDIR)/*.cm? $(BUILDDIR)/*.o
 	-rm $(BINLN)
 	-rmdir $(BUILDDIR)
