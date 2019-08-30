@@ -1,3 +1,8 @@
+let slice a start len = (
+	if start = 0 && len = Bigarray.Array1.dim a then a else
+	Bigarray.Array1.sub a start len
+);;
+
 let ba_copy source = (
 	let result = Bigarray.Array1.create (Bigarray.Array1.kind source) Bigarray.c_layout (Bigarray.Array1.dim source) in
 	Bigarray.Array1.blit source result;
@@ -11,6 +16,14 @@ let ba_append x y = (
 	Bigarray.Array1.blit x (Bigarray.Array1.sub result 0 x_length);
 	Bigarray.Array1.blit y (Bigarray.Array1.sub result x_length y_length);
 	result
+);;
+
+let ba_fill dest start len c = (
+	Bigarray.Array1.fill (slice dest start len) c
+);;
+
+let ba_blit source srcoff dest destoff len = (
+	Bigarray.Array1.blit (slice source srcoff len) (slice dest destoff len)
 );;
 
 let optional_raise (e: exn option): unit = (
@@ -365,6 +378,8 @@ module UTF16 = struct
 	let create = Bigarray.Array1.create Bigarray.int16_unsigned Bigarray.c_layout;;
 	let copy = ba_copy;;
 	let append = ba_append;;
+	let fill = ba_fill;;
+	let blit = ba_blit;;
 	let sequence = utf16_sequence;;
 	let max_sequence = 2;;
 	let get_code = utf16_get_code;;
@@ -385,6 +400,8 @@ module UTF32 = struct
 	let create = Bigarray.Array1.create Bigarray.int32 Bigarray.c_layout;;
 	let copy = ba_copy;;
 	let append = ba_append;;
+	let fill = ba_fill;;
+	let blit = ba_blit;;
 	let sequence = utf32_sequence;;
 	let max_sequence = 1;;
 	let get_code = utf32_get_code;;

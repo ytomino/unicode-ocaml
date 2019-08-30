@@ -27,7 +27,11 @@ BUILDDIR=$(TARGET).build
 
 .PHONY: all interacitve clean
 
-all: $(BUILDDIR)/test_conv.byte.exe $(BINLN)
+all: \
+	$(BUILDDIR)/test_conv.byte.exe \
+	$(BUILDDIR)/test_sig.byte.exe \
+	$(BUILDDIR)/test_supplied.byte.exe \
+	$(BINLN)
 
 $(BUILDDIR)/%.byte.exe: %.ml $(BUILDDIR)/unicode.cma
 	$(OCAMLC) -c -o $(BUILDDIR)/$*.cmo -I $(BUILDDIR) $(OCAMLCFLAGS) $<
@@ -38,6 +42,8 @@ ifneq ($(OCAMLOPT),)
 	$(OCAMLOPT) -o $(BUILDDIR)/$*.opt.exe -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/$*.cmx
 	$(BUILDDIR)/$*.opt.exe
 endif
+
+$(BUILDDIR)/test_sig.byte.exe: OCAMLCFLAGS+=-w -3
 
 interactive: $(BUILDDIR)/unicode.cma
 	$(RLWRAP) ocaml -I $(BUILDDIR) bigarray.cma unicode.cma

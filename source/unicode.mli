@@ -68,8 +68,8 @@ module UTF16: sig
 	val copy: t -> t
 	val append: t -> t -> t
 	external sub: t -> int -> int -> t = "caml_ba_sub"
-	external fill: t -> elm -> unit = "caml_ba_fill"
-	external blit: t -> t -> unit = "caml_ba_blit"
+	val fill: t -> int -> int -> elm -> unit
+	val blit: t -> int -> t -> int -> int -> unit
 	val sequence: ?illegal_sequence:exn -> elm -> int
 	val max_sequence: int
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
@@ -93,8 +93,8 @@ module UTF32: sig
 	val copy: t -> t
 	val append: t -> t -> t
 	external sub: t -> int -> int -> t = "caml_ba_sub"
-	external fill: t -> elm -> unit = "caml_ba_fill"
-	external blit: t -> t -> unit = "caml_ba_blit"
+	val fill: t -> int -> int -> elm -> unit
+	val blit: t -> int -> t -> int -> int -> unit
 	val sequence: ?illegal_sequence:exn -> elm -> int
 	val max_sequence: int
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
