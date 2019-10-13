@@ -23,7 +23,8 @@ endif
 
 empty=
 
-BUILDDIR=$(TARGET).build
+BUILDSUFFIX=.noindex
+BUILDDIR=$(TARGET)$(BUILDSUFFIX)
 
 .PHONY: all interacitve clean
 
