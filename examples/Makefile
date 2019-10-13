@@ -19,6 +19,7 @@ OCAMLOPT=ocamlopt
 
 BUILDSUFFIX=.noindex
 BUILDDIR=$(TARGET)$(BUILDSUFFIX)
+UNICODE_BUILDDIR=$(BUILDDIR)/unicode$(BUILDSUFFIX)
 
 .PHONY: all interacitve clean
 
@@ -44,13 +45,17 @@ interactive: $(BUILDDIR)/unicode.cma
 	$(RLWRAP) ocaml -I $(BUILDDIR) bigarray.cma unicode.cma
 
 $(BUILDDIR)/unicode.cma: $(wildcard ../source/*.ml*)
-	$(MAKE) -C ../source install INSTALLDIR=$(abspath $(BUILDDIR))
+	$(MAKE) -C ../source install \
+		BUILDDIR=$(abspath $(UNICODE_BUILDDIR)) \
+		INSTALLDIR=$(abspath $(BUILDDIR))
 
 $(BINLN):
 	-ln -s $(BUILDDIR) $@
 
 clean:
-	-$(MAKE) -C ../source clean uninstall INSTALLDIR=$(abspath $(BUILDDIR))
+	-$(MAKE) -C ../source clean uninstall \
+		BUILDDIR=$(abspath $(UNICODE_BUILDDIR)) \
+		INSTALLDIR=$(abspath $(BUILDDIR))
 	-rm $(BUILDDIR)/*.exe $(BUILDDIR)/*.cm? $(BUILDDIR)/*.o
 	-[ -h "$(BINLN)" ] && rm "$(BINLN)"
 	-rmdir $(BUILDDIR)
