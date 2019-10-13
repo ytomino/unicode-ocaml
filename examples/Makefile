@@ -14,14 +14,8 @@ else
 BINLN=
 endif
 
-ifeq ($(OCAMLC),gcamlc)
-OCAMLOPT=
-else
 OCAMLC=ocamlc
 OCAMLOPT=ocamlopt
-endif
-
-empty=
 
 BUILDSUFFIX=.noindex
 BUILDDIR=$(TARGET)$(BUILDSUFFIX)
