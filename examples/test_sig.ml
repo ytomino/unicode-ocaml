@@ -19,6 +19,8 @@ module type S = sig
 	val max_sequence: int
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
+	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elm -> 'a) -> 'a -> 'b ->
+		Uchar.t -> 'a
 	val set_code: ?illegal_sequence:exn -> mutable_t -> int ref -> Uchar.t ->
 		unit
 	val of_array: elm array -> t

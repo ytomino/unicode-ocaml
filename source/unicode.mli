@@ -12,14 +12,17 @@ type utf32_string = (UCS4.t, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Arr
 val utf8_sequence: ?illegal_sequence:exn -> utf8_char -> int
 val utf8_get_code: ?illegal_sequence:exn -> utf8_string -> int ref -> Uchar.t
 val utf8_lead: utf8_string -> int -> int
+val utf8_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf8_char -> 'a) -> 'a -> 'b -> Uchar.t -> 'a
 val utf8_set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit [@@ocaml.deprecated]
 val utf16_sequence: ?illegal_sequence:exn -> utf16_char -> int
 val utf16_get_code: ?illegal_sequence:exn -> utf16_string -> int ref -> Uchar.t
 val utf16_lead: utf16_string -> int -> int
+val utf16_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf16_char -> 'a) -> 'a -> 'b -> Uchar.t -> 'a
 val utf16_set_code: ?illegal_sequence:exn -> utf16_string -> int ref -> Uchar.t -> unit
 val utf32_sequence: ?illegal_sequence:exn -> utf32_char -> int
 val utf32_get_code: ?illegal_sequence:exn -> utf32_string -> int ref -> Uchar.t
 val utf32_lead: utf32_string -> int -> int
+val utf32_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf32_char -> 'a) -> 'a -> 'b -> Uchar.t -> 'a
 val utf32_set_code: ?illegal_sequence:exn -> utf32_string -> int ref -> Uchar.t -> unit
 val utf8_of_utf16: ?illegal_sequence:exn -> utf16_string -> utf8_string
 val utf8_of_utf32: ?illegal_sequence:exn -> utf32_string -> utf8_string
@@ -49,6 +52,7 @@ module UTF8: sig
 	val max_sequence: int
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
+	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elm -> 'a) -> 'a -> 'b -> Uchar.t -> 'a
 	val set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit [@@ocaml.deprecated]
 	val of_utf16: ?illegal_sequence:exn -> utf16_string -> t
 	val of_utf32: ?illegal_sequence:exn -> utf32_string -> t
@@ -74,6 +78,7 @@ module UTF16: sig
 	val max_sequence: int
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
+	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elm -> 'a) -> 'a -> 'b -> Uchar.t -> 'a
 	val set_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t -> unit
 	val of_utf8: ?illegal_sequence:exn -> utf8_string -> t
 	val of_utf32: ?illegal_sequence:exn -> utf32_string -> t
@@ -99,6 +104,7 @@ module UTF32: sig
 	val max_sequence: int
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
+	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elm -> 'a) -> 'a -> 'b -> Uchar.t -> 'a
 	val set_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t -> unit
 	val of_utf8: ?illegal_sequence:exn -> utf8_string -> t
 	val of_utf16: ?illegal_sequence:exn -> utf16_string -> t
