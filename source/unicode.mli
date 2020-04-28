@@ -2,6 +2,7 @@ type ucs4 = Int32.t
 module UCS4: sig
 	include module type of Int32 with type t = ucs4
 	val of_int: int -> t
+	val to_int: t -> int
 end
 type utf8_char = char
 type utf8_string = string

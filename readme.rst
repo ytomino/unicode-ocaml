@@ -82,6 +82,11 @@ element, N means next sequence)
 
 and surrogate pair will be taken as normal code-point.
 
+Limitations
++++++++++++
+
+U+7FFFFFFF is the maximum that this library can handle correctly.
+
 License
 -------
 

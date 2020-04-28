@@ -48,11 +48,18 @@ let check_surrogate_pair (illegal_sequence: exn option) (code: int): unit = (
 	)
 );;
 
+let check_range (illegal_sequence: exn option) (code: Int32.t): unit = (
+	if code < 0l then (
+		optional_raise illegal_sequence
+	)
+);;
+
 type ucs4 = Int32.t;;
 
 module UCS4 = struct
 	include Int32;;
 	let of_int x = Int32.logand (Int32.of_int x) 0x7fffffffl;;
+	let to_int x = Int32.to_int x land 0x7fffffff;;
 end;;
 
 type utf8_char = char;;
@@ -260,12 +267,14 @@ let utf16_set_code ?(illegal_sequence: exn option) (dest: utf16_string) (index: 
 );;
 
 let utf32_sequence ?(illegal_sequence: exn option) (lead: utf32_char): int = (
+	check_range illegal_sequence lead;
 	check_surrogate_pair illegal_sequence (UCS4.to_int lead);
 	1
 );;
 
 let utf32_get_code ?(illegal_sequence: exn option) (source: utf32_string) (index: int ref): Uchar.t = (
 	let result = Bigarray.Array1.get source !index in
+	check_range illegal_sequence result;
 	let result = UCS4.to_int result in
 	check_surrogate_pair illegal_sequence result;
 	incr index;

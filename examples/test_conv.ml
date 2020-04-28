@@ -82,6 +82,12 @@ assert (let i = ref 0 in Unicode.utf16_get_code iseq16_3 i = Uchar.of_int 0x1000
 assert (let i = ref 0 in Unicode.utf16_get_code iseq16_4 i = Uchar.of_int 0x10000 && !i = 1);;
 assert (let i = ref 0 in Unicode.utf16_get_code iseq16_5 i = Uchar.unsafe_of_int 0xdeaa && !i = 1);;
 
+(* UTF-32 illegal sequence *)
+
+let iseq32_1 = Unicode.UTF32.of_array [| 0xffffffffl |];;
+
+assert (let i = ref 0 in Unicode.utf32_get_code iseq32_1 i = Uchar.unsafe_of_int 0x7fffffff);;
+
 (* report *)
 
 print_string "ok";;
