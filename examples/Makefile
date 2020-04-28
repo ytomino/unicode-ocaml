@@ -28,21 +28,24 @@ TESTS=$(filter test_%,$(EXAMPLES))
 
 all: \
 	$(patsubst %,$(BUILDDIR)/%.byte.exe,$(EXAMPLES)) \
+	$(if $(OCAMLOPT),$(patsubst %,$(BUILDDIR)/%.opt.exe,$(EXAMPLES))) \
 	$(BINLN)
 
 $(BUILDDIR)/%.byte.exe: %.ml $(BUILDDIR)/unicode.cma
 	$(OCAMLC) -c -o $(BUILDDIR)/$*.cmo -I $(BUILDDIR) $(OCAMLCFLAGS) $<
 	$(OCAMLC) -o $(BUILDDIR)/$*.byte.exe -I $(BUILDDIR) bigarray.cma unicode.cma $(BUILDDIR)/$*.cmo
+
 ifneq ($(OCAMLOPT),)
+$(BUILDDIR)/%.opt.exe: %.ml $(BUILDDIR)/unicode.cmxa
 	$(OCAMLOPT) -c -o $(BUILDDIR)/$*.cmx -I $(BUILDDIR) $(OCAMLCFLAGS) $*.ml
 	$(OCAMLOPT) -o $(BUILDDIR)/$*.opt.exe -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/$*.cmx
 endif
 
-$(BUILDDIR)/test_sig.byte.exe: OCAMLCFLAGS+=-w -3
+$(BUILDDIR)/test_sig.%.exe: OCAMLCFLAGS+=-w -3
 
 check: all $(TESTS)
 
-$(TESTS): %: $(BUILDDIR)/%.byte.exe
+$(TESTS): %: $(BUILDDIR)/%.byte.exe $(if $(OCAMLOPT),$(BUILDDIR)/%.opt.exe)
 	$<
 ifneq ($(OCAMLOPT),)
 	$(patsubst %.byte.exe,%.opt.exe,$<)
@@ -51,7 +54,7 @@ endif
 interactive: $(BUILDDIR)/unicode.cma
 	$(RLWRAP) ocaml -I $(BUILDDIR) bigarray.cma unicode.cma
 
-$(BUILDDIR)/unicode.cma: $(wildcard ../source/*.ml*)
+$(BUILDDIR)/unicode.cma $(if $(OCAMLOPT),$(BUILDDIR)/unicode.cmxa): $(wildcard ../source/*.ml*)
 	$(MAKE) -C ../source install \
 		BUILDDIR=$(abspath $(UNICODE_BUILDDIR)) \
 		INSTALLDIR=$(abspath $(BUILDDIR))
