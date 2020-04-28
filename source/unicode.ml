@@ -13,8 +13,8 @@ let ba_append x y = (
 	let x_length = Bigarray.Array1.dim x in
 	let y_length = Bigarray.Array1.dim y in
 	let result = Bigarray.Array1.create (Bigarray.Array1.kind x) Bigarray.c_layout (x_length + y_length) in
-	Bigarray.Array1.blit x (Bigarray.Array1.sub result 0 x_length);
-	Bigarray.Array1.blit y (Bigarray.Array1.sub result x_length y_length);
+	Bigarray.Array1.blit x (slice result 0 x_length);
+	Bigarray.Array1.blit y (slice result x_length y_length);
 	result
 );;
 
@@ -314,7 +314,7 @@ let utf16_of_utf8 ?(illegal_sequence: exn option) (source: utf8_string): utf16_s
 	let source_length = String.length source in
 	let result = Bigarray.Array1.create Bigarray.int16_unsigned Bigarray.c_layout source_length in
 	let rec make illegal_sequence length source i result j = (
-		if !i >= length then Bigarray.Array1.sub result 0 j else (
+		if !i >= length then slice result 0 j else (
 			let code = utf8_get_code ?illegal_sequence source i in
 			let j = utf16_encode ?illegal_sequence add_to_ba j result code in
 			make illegal_sequence length source i result j
@@ -340,7 +340,7 @@ let utf32_of_utf8 ?(illegal_sequence: exn option) (source: utf8_string): utf32_s
 	let source_length = String.length source in
 	let result = Bigarray.Array1.create Bigarray.int32 Bigarray.c_layout source_length in
 	let rec make illegal_sequence length source i result j = (
-		if !i >= length then Bigarray.Array1.sub result 0 j else (
+		if !i >= length then slice result 0 j else (
 			let code = utf8_get_code ?illegal_sequence source i in
 			let j = utf32_encode ?illegal_sequence add_to_ba j result code in
 			make illegal_sequence length source i result j
@@ -353,7 +353,7 @@ let utf32_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string): utf32
 	let source_length = Bigarray.Array1.dim source in
 	let result = Bigarray.Array1.create Bigarray.int32 Bigarray.c_layout source_length in
 	let rec make illegal_sequence length source i result j = (
-		if !i >= length then Bigarray.Array1.sub result 0 j else (
+		if !i >= length then slice result 0 j else (
 			let code = utf16_get_code ?illegal_sequence source i in
 			let j = utf32_encode ?illegal_sequence add_to_ba j result code in
 			make illegal_sequence length source i result j
