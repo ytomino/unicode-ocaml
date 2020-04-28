@@ -235,7 +235,7 @@ let utf16_lead (s: utf16_string) (i: int): int = (
 	if i > 0 &&
 		let c = Bigarray.Array1.get s i in
 		c >= 0xdc00 && c <= 0xdfff &&
-		let p = Bigarray.Array1.unsafe_get s i - 1 in
+		let p = Bigarray.Array1.unsafe_get s (i - 1) in
 		p >= 0xd800 && p <= 0xdbff
 	then i - 1 else i
 );;

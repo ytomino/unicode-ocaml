@@ -17,11 +17,13 @@ assert (Unicode.utf8_lead data8 4 = 3);;
 assert (Unicode.utf8_lead data8 3 = 3);;
 assert (Unicode.utf8_lead data8 2 = 0);;
 
-let pair_data16 = Unicode.utf16_of_utf32 (Unicode.UTF32.of_array [| 0x10000l; 0x10000l; 0x10000l |]);;
+let pair_data16 = Unicode.utf16_of_utf32 (Unicode.UTF32.of_array [| 0x10000l; 0x10001l; 0x10002l |]);;
+assert (Unicode.utf16_lead pair_data16 5 = 4);;
 assert (Unicode.utf16_lead pair_data16 4 = 4);;
 assert (Unicode.utf16_lead pair_data16 3 = 2);;
 assert (Unicode.utf16_lead pair_data16 2 = 2);;
 assert (Unicode.utf16_lead pair_data16 1 = 0);;
+assert (Unicode.utf16_lead pair_data16 0 = 0);;
 
 (* UTF-8 illegal sequence *)
 
