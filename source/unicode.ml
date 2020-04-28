@@ -253,10 +253,14 @@ let utf16_encode ?(illegal_sequence: exn option) (f: 'a -> 'b -> utf16_char -> '
 	if code >= 0 && (* code <= 0xd7ff || code >= 0xe000 && *) code <= 0xffff then (
 		f a b code
 	) else (
-		let c2 = code - 0x10000 in
-		if c2 >= 1 lsl 20 then (
-			optional_raise illegal_sequence
-		);
+		let c2 =
+			if code >= 0x110000 then (
+				optional_raise illegal_sequence;
+				0xfffff
+			) else (
+				code - 0x10000
+			)
+		in
 		let a = f a b (0xd800 lor ((c2 lsr 10) land (1 lsl 10 - 1))) in
 		f a b (0xdc00 lor (c2 land (1 lsl 10 - 1)))
 	)
