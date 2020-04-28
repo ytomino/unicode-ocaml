@@ -21,25 +21,32 @@ BUILDSUFFIX=.noindex
 BUILDDIR=$(TARGET)$(BUILDSUFFIX)
 UNICODE_BUILDDIR=$(BUILDDIR)/unicode$(BUILDSUFFIX)
 
-.PHONY: all interacitve clean
+EXAMPLES=$(basename $(wildcard *.ml))
+TESTS=$(filter test_%,$(EXAMPLES))
+
+.PHONY: all check interacitve clean $(TESTS)
 
 all: \
-	$(BUILDDIR)/test_conv.byte.exe \
-	$(BUILDDIR)/test_sig.byte.exe \
-	$(BUILDDIR)/test_supplied.byte.exe \
+	$(patsubst %,$(BUILDDIR)/%.byte.exe,$(EXAMPLES)) \
 	$(BINLN)
 
 $(BUILDDIR)/%.byte.exe: %.ml $(BUILDDIR)/unicode.cma
 	$(OCAMLC) -c -o $(BUILDDIR)/$*.cmo -I $(BUILDDIR) $(OCAMLCFLAGS) $<
 	$(OCAMLC) -o $(BUILDDIR)/$*.byte.exe -I $(BUILDDIR) bigarray.cma unicode.cma $(BUILDDIR)/$*.cmo
-	$(BUILDDIR)/$*.byte.exe
 ifneq ($(OCAMLOPT),)
 	$(OCAMLOPT) -c -o $(BUILDDIR)/$*.cmx -I $(BUILDDIR) $(OCAMLCFLAGS) $*.ml
 	$(OCAMLOPT) -o $(BUILDDIR)/$*.opt.exe -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/$*.cmx
-	$(BUILDDIR)/$*.opt.exe
 endif
 
 $(BUILDDIR)/test_sig.byte.exe: OCAMLCFLAGS+=-w -3
+
+check: all $(TESTS)
+
+$(TESTS): %: $(BUILDDIR)/%.byte.exe
+	$<
+ifneq ($(OCAMLOPT),)
+	$(patsubst %.byte.exe,%.opt.exe,$<)
+endif
 
 interactive: $(BUILDDIR)/unicode.cma
 	$(RLWRAP) ocaml -I $(BUILDDIR) bigarray.cma unicode.cma
