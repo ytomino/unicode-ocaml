@@ -250,7 +250,7 @@ let utf16_lead (s: utf16_string) (i: int): int = (
 let utf16_encode ?(illegal_sequence: exn option) (f: 'a -> 'b -> utf16_char -> 'a) a b (code: Uchar.t) = (
 	(* without checking surrogate pair in set *)
 	let code = Uchar.to_int code in
-	if code >= 0 && (* code <= 0xd7ff || code >= 0xe000 && *) code <= 0xffff then (
+	if code <= 0xffff then (
 		f a b code
 	) else (
 		let c2 =
