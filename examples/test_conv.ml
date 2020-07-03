@@ -1,13 +1,22 @@
+let exn = Failure "test_conv.ml";;
+
 (* utfX_of_utfX *)
 
 let data8 = "あいうえお𐄷";; (* A, I, U, E, O, "AEGEAN WEIGHT BASE UNIT" *)
 let data16 = Unicode.utf16_of_utf8 data8;;
 let data32 = Unicode.utf32_of_utf8 data8;;
 
+assert (Unicode.utf16_of_utf8 ~illegal_sequence:exn data8 = data16);;
+assert (Unicode.utf32_of_utf8 ~illegal_sequence:exn data8 = data32);;
+
 assert (Unicode.utf8_of_utf16 data16 = data8);;
+assert (Unicode.utf8_of_utf16 ~illegal_sequence:exn data16 = data8);;
 assert (Unicode.utf8_of_utf32 data32 = data8);;
+assert (Unicode.utf8_of_utf32 ~illegal_sequence:exn data32 = data8);;
 assert (Unicode.utf16_of_utf32 data32 = data16);;
+assert (Unicode.utf16_of_utf32 ~illegal_sequence:exn data32 = data16);;
 assert (Unicode.utf32_of_utf16 data16 = data32);;
+assert (Unicode.utf32_of_utf16 ~illegal_sequence:exn data16 = data32);;
 
 (* lead *)
 
