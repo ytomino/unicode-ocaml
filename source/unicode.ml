@@ -205,8 +205,9 @@ let utf8_encode ?(illegal_sequence: exn option)
 	let length = utf8_storing_length code in
 	if length = 1 then f a b (char_of_int code) else (
 		let offset = (length - 1) * 6 in
+		let mask = (1 lsl (8 - length) - 1) in
 		let leading = char_of_int
-			(code lsr offset lor (0xff lxor (1 lsl (8 - length) - 1)))
+			(code lsr offset land (mask lsr 1) lor (0xff lxor mask))
 		in
 		let a = f a b leading in
 		tails f offset a b code
@@ -294,13 +295,14 @@ let utf16_encode ?(illegal_sequence: exn option)
 (
 	(* without checking surrogate pair in set *)
 	let code = Uchar.to_int code in
-	if code <= 0xffff then f a b code else (
+	if code land lnot 0xffff = 0 then f a b code else (
 		let c2 =
-			if code >= 0x110000 then (
+			let c2 = code - 0x10000 in
+			if code land lnot 0xfffff <> 0 then (
 				optional_raise illegal_sequence;
 				0xfffff
 			) else (
-				code - 0x10000
+				c2
 			)
 		in
 		let a = f a b (0xd800 lor ((c2 lsr 10) land (1 lsl 10 - 1))) in
