@@ -100,19 +100,12 @@ let utf8_storing_length (code: int): int = (
 
 let utf8_sequence ?(illegal_sequence: exn option) (lead: utf8_char) = (
 	let lead = int_of_char lead in
-	if lead land 0b10000000 = 0 then (
-		1
-	) else if lead land 0b11100000 = 0b11000000 then (
-		2
-	) else if lead land 0b11110000 = 0b11100000 then (
-		3
-	) else if lead land 0b11111000 = 0b11110000 then (
-		4
-	) else if lead land 0b11111100 = 0b11111000 then (
-		5
-	) else if lead land 0b11111110 = 0b11111100 then (
-		6
-	) else (
+	if lead land 0b10000000 = 0 then 1 else
+	if lead land 0b11100000 = 0b11000000 then 2 else
+	if lead land 0b11110000 = 0b11100000 then 3 else
+	if lead land 0b11111000 = 0b11110000 then 4 else
+	if lead land 0b11111100 = 0b11111000 then 5 else
+	if lead land 0b11111110 = 0b11111100 then 6 else (
 		optional_raise illegal_sequence;
 		1
 	)
@@ -210,9 +203,7 @@ let utf8_encode ?(illegal_sequence: exn option)
 	) in
 	let code = Uchar.to_int code in
 	let length = utf8_storing_length code in
-	if length = 1 then (
-		f a b (char_of_int code)
-	) else (
+	if length = 1 then f a b (char_of_int code) else (
 		let offset = (length - 1) * 6 in
 		let leading = char_of_int
 			(code lsr offset lor (0xff lxor (1 lsl (8 - length) - 1)))
@@ -236,11 +227,8 @@ let utf16_add (index: int) (dest: utf16_string) (item: utf16_char): int = (
 );;
 
 let utf16_sequence ?(illegal_sequence: exn option) (lead: utf16_char) = (
-	if lead >= 0 && lead <= 0xd7ff || lead >= 0xe000 && lead <= 0xffff then (
-		1
-	) else if lead >= 0xd800 && lead <= 0xdbff then (
-		2
-	) else (
+	if lead >= 0 && lead <= 0xd7ff || lead >= 0xe000 && lead <= 0xffff then 1 else
+	if lead >= 0xd800 && lead <= 0xdbff then 2 else (
 		optional_raise illegal_sequence;
 		1
 	)
@@ -306,9 +294,7 @@ let utf16_encode ?(illegal_sequence: exn option)
 (
 	(* without checking surrogate pair in set *)
 	let code = Uchar.to_int code in
-	if code <= 0xffff then (
-		f a b code
-	) else (
+	if code <= 0xffff then f a b code else (
 		let c2 =
 			if code >= 0x110000 then (
 				optional_raise illegal_sequence;
@@ -385,13 +371,12 @@ let utf8_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string)
 	let result = Bytes.create (3 * source_length) in
 	let rec make illegal_sequence source i result j = (
 		if i >= Bigarray.Array1.dim source
-		then Bytes.unsafe_to_string (Bytes.sub result 0 j) else (
-			utf16_decode ?illegal_sequence utf16_get succ_snd ba_end source i result j
-				illegal_sequence (fun source i result j illegal_sequence code ->
-					let j = utf8_encode ?illegal_sequence utf8_add j result code in
-					make illegal_sequence source i result j
-				)
-		)
+		then Bytes.unsafe_to_string (Bytes.sub result 0 j) else
+		utf16_decode ?illegal_sequence utf16_get succ_snd ba_end source i result j
+			illegal_sequence (fun source i result j illegal_sequence code ->
+				let j = utf8_encode ?illegal_sequence utf8_add j result code in
+				make illegal_sequence source i result j
+			)
 	) in
 	make illegal_sequence source 0 result 0
 );;
@@ -403,13 +388,12 @@ let utf8_of_utf32 ?(illegal_sequence: exn option) (source: utf32_string)
 	let result = Bytes.create (6 * source_length) in
 	let rec make illegal_sequence source i result j = (
 		if i >= Bigarray.Array1.dim source
-		then Bytes.unsafe_to_string (Bytes.sub result 0 j) else (
-			utf32_decode ?illegal_sequence utf32_get succ_snd ba_end source i result j
-				illegal_sequence (fun source i result j illegal_sequence code ->
-					let j = utf8_encode ?illegal_sequence utf8_add j result code in
-					make illegal_sequence source i result j
-				)
-		)
+		then Bytes.unsafe_to_string (Bytes.sub result 0 j) else
+		utf32_decode ?illegal_sequence utf32_get succ_snd ba_end source i result j
+			illegal_sequence (fun source i result j illegal_sequence code ->
+				let j = utf8_encode ?illegal_sequence utf8_add j result code in
+				make illegal_sequence source i result j
+			)
 	) in
 	make illegal_sequence source 0 result 0
 );;
@@ -422,13 +406,12 @@ let utf16_of_utf8 ?(illegal_sequence: exn option) (source: utf8_string)
 		source_length
 	in
 	let rec make illegal_sequence source i result j = (
-		if i >= String.length source then slice result 0 j else (
-			utf8_decode ?illegal_sequence utf8_get succ_snd string_end source i result j
-				illegal_sequence (fun source i result j illegal_sequence code ->
-					let j = utf16_encode ?illegal_sequence utf16_add j result code in
-					make illegal_sequence source i result j
-				)
-		)
+		if i >= String.length source then slice result 0 j else
+		utf8_decode ?illegal_sequence utf8_get succ_snd string_end source i result j
+			illegal_sequence (fun source i result j illegal_sequence code ->
+				let j = utf16_encode ?illegal_sequence utf16_add j result code in
+				make illegal_sequence source i result j
+			)
 	) in
 	make illegal_sequence source 0 result 0
 );;
@@ -441,13 +424,12 @@ let utf16_of_utf32 ?(illegal_sequence: exn option) (source: utf32_string)
 		(2 * source_length)
 	in
 	let rec make illegal_sequence source i result j = (
-		if i >= Bigarray.Array1.dim source then Bigarray.Array1.sub result 0 j else (
-			utf32_decode ?illegal_sequence utf32_get succ_snd ba_end source i result j
-				illegal_sequence (fun source i result j illegal_sequence code ->
-					let j = utf16_encode ?illegal_sequence utf16_add j result code in
-					make illegal_sequence source i result j
-				)
-		)
+		if i >= Bigarray.Array1.dim source then Bigarray.Array1.sub result 0 j else
+		utf32_decode ?illegal_sequence utf32_get succ_snd ba_end source i result j
+			illegal_sequence (fun source i result j illegal_sequence code ->
+				let j = utf16_encode ?illegal_sequence utf16_add j result code in
+				make illegal_sequence source i result j
+			)
 	) in
 	make illegal_sequence source 0 result 0
 );;
@@ -460,13 +442,12 @@ let utf32_of_utf8 ?(illegal_sequence: exn option) (source: utf8_string)
 		source_length
 	in
 	let rec make illegal_sequence source i result j = (
-		if i >= String.length source then slice result 0 j else (
-			utf8_decode ?illegal_sequence utf8_get succ_snd string_end source i result j
-				illegal_sequence (fun source i result j illegal_sequence code ->
-					let j = utf32_encode ?illegal_sequence utf32_add j result code in
-					make illegal_sequence source i result j
-				)
-		)
+		if i >= String.length source then slice result 0 j else
+		utf8_decode ?illegal_sequence utf8_get succ_snd string_end source i result j
+			illegal_sequence (fun source i result j illegal_sequence code ->
+				let j = utf32_encode ?illegal_sequence utf32_add j result code in
+				make illegal_sequence source i result j
+			)
 	) in
 	make illegal_sequence source 0 result 0
 );;
@@ -479,13 +460,12 @@ let utf32_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string)
 		source_length
 	in
 	let rec make illegal_sequence source i result j = (
-		if i >= Bigarray.Array1.dim source then slice result 0 j else (
-			utf16_decode ?illegal_sequence utf16_get succ_snd ba_end source i result j
-				illegal_sequence (fun source i result j illegal_sequence code ->
-					let j = utf32_encode ?illegal_sequence utf32_add j result code in
-					make illegal_sequence source i result j
-				)
-		)
+		if i >= Bigarray.Array1.dim source then slice result 0 j else
+		utf16_decode ?illegal_sequence utf16_get succ_snd ba_end source i result j
+			illegal_sequence (fun source i result j illegal_sequence code ->
+				let j = utf32_encode ?illegal_sequence utf32_add j result code in
+				make illegal_sequence source i result j
+			)
 	) in
 	make illegal_sequence source 0 result 0
 );;
