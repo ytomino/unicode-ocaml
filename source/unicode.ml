@@ -118,7 +118,14 @@ let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 	let rec tails illegal_sequence get_f inc_f end_f a b c d e cont length offset
 		code =
 	(
-		if offset > 0 then (
+		if offset <= 0 then (
+			let result = code in
+			check_surrogate_pair illegal_sequence result;
+			if utf8_storing_length result <> length then (
+				optional_raise illegal_sequence
+			);
+			cont a b c d e (Uchar.unsafe_of_int result)
+		) else (
 			if not (end_f d e) then (
 				let tail = int_of_char (get_f d e) in
 				if tail >= 0b10000000 && tail < 0b10111111 then (
@@ -137,13 +144,6 @@ let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 				tails illegal_sequence get_f inc_f end_f a b c d e cont length 0
 					(code lsl offset)
 			)
-		) else (
-			let result = code in
-			check_surrogate_pair illegal_sequence result;
-			if utf8_storing_length result <> length then (
-				optional_raise illegal_sequence
-			);
-			cont a b c d e (Uchar.unsafe_of_int result)
 		)
 	) in
 	let lead = int_of_char (get_f d e) in
