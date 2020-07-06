@@ -150,19 +150,19 @@ assert (
 let negative = Uchar.unsafe_of_int ~-1;;
 
 assert (
-	let r = Unicode.utf8_encode (fun a () item -> Buffer.add_char a item; a)
-		(Buffer.create 6) () negative
+	let r = Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
+		() (Buffer.create 6) negative
 	in
 	Buffer.contents r = "\xfd\xbf\xbf\xbf\xbf\xbf"
 );;
 
 assert (
-	let r = Unicode.utf16_encode (fun a () item -> item :: a) [] () negative in
+	let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] negative in
 	List.rev r = [0xdbff; 0xdfff]
 );;
 
 assert (
-	let r = Unicode.utf32_encode (fun a () item -> item :: a) [] () negative in
+	let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] negative in
 	r = [0x7fffffffl]
 );;
 

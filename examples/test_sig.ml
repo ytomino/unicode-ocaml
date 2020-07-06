@@ -17,13 +17,13 @@ module type S = sig
 	val blit: t -> int -> mutable_t -> int -> int -> unit
 	val sequence: ?illegal_sequence:exn -> elm -> int
 	val max_sequence: int
-	val decode: ?illegal_sequence:exn -> ('a -> 'b -> elm) -> ('a -> 'b -> 'b) ->
-		('a -> 'b -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
+	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elm) -> ('d -> 'e -> 'e) ->
+		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
-	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elm -> 'a) -> 'a -> 'b ->
-		Uchar.t -> 'a
+	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elm -> 'b) -> 'a -> 'b ->
+		Uchar.t -> 'b
 	val set_code: ?illegal_sequence:exn -> mutable_t -> int ref -> Uchar.t ->
 		unit
 	val of_array: elm array -> t
