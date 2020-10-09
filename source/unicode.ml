@@ -115,34 +115,32 @@ let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 	(inc_f: 'd -> 'e -> 'e) (end_f: 'd -> 'e -> bool) a b c d e
 	(cont: 'a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) =
 (
+	let finish illegal_sequence a b c d e cont length code = (
+			check_surrogate_pair illegal_sequence code;
+			if utf8_storing_length code <> length then (
+				optional_raise illegal_sequence
+			);
+			cont a b c d e (Uchar.unsafe_of_int code)
+	) in
 	let rec tails illegal_sequence get_f inc_f end_f a b c d e cont length offset
 		code =
 	(
-		if offset <= 0 then (
-			let result = code in
-			check_surrogate_pair illegal_sequence result;
-			if utf8_storing_length result <> length then (
-				optional_raise illegal_sequence
-			);
-			cont a b c d e (Uchar.unsafe_of_int result)
-		) else (
-			if not (end_f d e) then (
+		if offset <= 0 then finish illegal_sequence a b c d e cont length code else (
+			if end_f d e then (
+				(* no trailing *)
+				optional_raise illegal_sequence;
+				finish illegal_sequence a b c d e cont length (code lsl offset)
+			) else (
 				let tail = int_of_char (get_f d e) in
-				if tail >= 0b10000000 && tail <= 0b10111111 then (
+				if tail < 0b10000000 || tail > 0b10111111 then (
+					(* trailing is illegal *)
+					optional_raise illegal_sequence;
+					finish illegal_sequence a b c d e cont length (code lsl offset)
+				) else (
 					let e = inc_f d e in
 					tails illegal_sequence get_f inc_f end_f a b c d e cont length (offset - 6)
 						(code lsl 6 lor (tail land 0b00111111))
-				) else (
-					(* trailing is illegal *)
-					optional_raise illegal_sequence;
-					tails illegal_sequence get_f inc_f end_f a b c d e cont length 0
-						(code lsl offset)
 				)
-			) else (
-				(* no trailing *)
-				optional_raise illegal_sequence;
-				tails illegal_sequence get_f inc_f end_f a b c d e cont length 0
-					(code lsl offset)
 			)
 		)
 	) in
