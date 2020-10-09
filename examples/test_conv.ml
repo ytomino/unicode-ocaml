@@ -35,6 +35,94 @@ assert (Unicode.utf16_lead pair_data16 2 = 2);;
 assert (Unicode.utf16_lead pair_data16 1 = 0);;
 assert (Unicode.utf16_lead pair_data16 0 = 0);;
 
+(* UTF-8 corners *)
+
+assert (
+	let s = "\x7f" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.of_int 0x007f && !i = 1
+);;
+
+assert (
+	let s = "\xc2\x80" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.of_int 0x0080 && !i = 2
+);;
+
+assert (
+	let s = "\xdf\xbf" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.of_int 0x07ff && !i = 2
+);;
+
+assert (
+	let s = "\xe0\xa0\x80" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.of_int 0x0800 && !i = 3
+);;
+
+assert (
+	let s = "\xef\xbf\xbf" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.of_int 0xffff && !i = 3
+);;
+
+assert (
+	let s = "\xf0\x90\x80\x80" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.of_int 0x10000
+		&& !i = 4
+);;
+
+assert (
+	let s = "\xf4\x8f\xbf\xbf" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.of_int 0x10ffff
+		&& !i = 4
+);;
+
+assert (
+	let s = "\xf4\x90\x80\x80" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.unsafe_of_int 0x110000
+		&& !i = 4
+);;
+
+assert (
+	let s = "\xf7\xbf\xbf\xbf" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.unsafe_of_int 0x1fffff
+		&& !i = 4
+);;
+
+assert (
+	let s = "\xf8\x88\x80\x80\x80" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.unsafe_of_int 0x200000
+		&& !i = 5
+);;
+
+assert (
+	let s = "\xfb\xbf\xbf\xbf\xbf" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.unsafe_of_int 0x3ffffff
+		&& !i = 5
+);;
+
+assert (
+	let s = "\xfc\x84\x80\x80\x80\x80" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.unsafe_of_int 0x4000000
+		&& !i = 6
+);;
+
+assert (
+	let s = "\xfd\xbf\xbf\xbf\xbf\xbf" in
+	let i = ref 0 in
+	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.unsafe_of_int 0x7fffffff
+		&& !i = 6
+);;
+
 (* UTF-8 illegal sequence *)
 
 let iseq8_1 = Unicode.UTF8.of_array [|

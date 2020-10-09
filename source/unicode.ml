@@ -128,7 +128,7 @@ let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 		) else (
 			if not (end_f d e) then (
 				let tail = int_of_char (get_f d e) in
-				if tail >= 0b10000000 && tail < 0b10111111 then (
+				if tail >= 0b10000000 && tail <= 0b10111111 then (
 					let e = inc_f d e in
 					tails illegal_sequence get_f inc_f end_f a b c d e cont length (offset - 6)
 						(code lsl 6 lor (tail land 0b00111111))
