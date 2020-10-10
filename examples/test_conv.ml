@@ -263,5 +263,4 @@ assert (
 
 (* report *)
 
-print_string "ok";;
-print_newline ();;
+prerr_endline "ok";;
