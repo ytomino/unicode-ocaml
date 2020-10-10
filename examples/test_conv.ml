@@ -244,6 +244,13 @@ assert (
 	Buffer.contents r = "\xfd\xbf\xbf\xbf\xbf\xbf"
 );;
 
+if Sys.word_size > 32 then (
+	ignore (
+		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b) ()
+			(Buffer.create 6) (Uchar.unsafe_of_int (1 lsl 32))
+	) (* the result is undefined *)
+);;
+
 assert (
 	let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] negative in
 	List.rev r = [0xdbff; 0xdfff]

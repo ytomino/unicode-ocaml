@@ -90,7 +90,7 @@ let utf8_add (dest: bytes) (index: int) (item: utf8_char) = (
 );;
 
 let utf8_storing_length (code: int) = (
-	if code land 0x7fffff80 = 0 then 1 else
+	if code land lnot 0x7f = 0 then 1 else
 	if code land lnot (1 lsl (5 + 6) - 1) = 0 then 2 else
 	if code land lnot (1 lsl (4 + 12) - 1) = 0 then 3 else
 	if code land lnot (1 lsl (3 + 18) - 1) = 0 then 4 else
