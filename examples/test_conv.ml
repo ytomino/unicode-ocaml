@@ -26,6 +26,10 @@ assert (Unicode.utf8_lead data8 4 = 3);;
 assert (Unicode.utf8_lead data8 3 = 3);;
 assert (Unicode.utf8_lead data8 2 = 0);;
 
+assert (Unicode.utf8_lead "\x80" 0 = 0);;
+assert (Unicode.utf8_lead "\xc0" 0 = 0);;
+assert (Unicode.utf8_lead "\xc0\x80\x80" 2 = 2);;
+
 let pair_data16 = Unicode.utf16_of_utf32
 	(Unicode.UTF32.of_array [| 0x10000l; 0x10001l; 0x10002l |]);;
 assert (Unicode.utf16_lead pair_data16 5 = 4);;
@@ -34,6 +38,12 @@ assert (Unicode.utf16_lead pair_data16 3 = 2);;
 assert (Unicode.utf16_lead pair_data16 2 = 2);;
 assert (Unicode.utf16_lead pair_data16 1 = 0);;
 assert (Unicode.utf16_lead pair_data16 0 = 0);;
+
+assert (Unicode.utf16_lead (Unicode.UTF16.of_array [| 0xdc00 |]) 0 = 0);;
+assert (Unicode.utf16_lead (Unicode.UTF16.of_array [| 0xd800 |]) 0 = 0);;
+assert (
+	Unicode.utf16_lead (Unicode.UTF16.of_array [| 0xd800; 0xdc00; 0xdc00 |]) 2 = 2
+);;
 
 (* UTF-8 corners *)
 

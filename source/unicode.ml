@@ -183,13 +183,15 @@ let utf8_get_code ?(illegal_sequence: exn option) (source: utf8_string)
 );;
 
 let utf8_lead (s: utf8_string) (i: int) = (
-	let rec lead s i = (
-		if i = 0 || int_of_char (String.get s i) land 0b11000000 <> 0b10000000
-		then i else
-		lead s (i - 1)
+	let rec lead s i j c = (
+		if j <= 0 || int_of_char c land 0b11000000 <> 0b10000000 then (
+			if j + utf8_sequence (c) <= i then i else
+			j
+		) else
+		let n = j - 1 in
+		lead s i n (String.unsafe_get s n)
 	) in
-	let first = lead s i in
-	if first + utf8_sequence (String.get s first) > i then first else i
+	lead s i i (String.get s i)
 );;
 
 let utf8_encode ?(illegal_sequence: exn option)
@@ -283,13 +285,12 @@ let utf16_get_code ?(illegal_sequence: exn option) (source: utf16_string)
 );;
 
 let utf16_lead (s: utf16_string) (i: int) = (
-	if i > 0 &&
-		let c = Bigarray.Array1.get s i in
-		c >= 0xdc00 && c <= 0xdfff &&
-		let p = Bigarray.Array1.unsafe_get s (i - 1) in
-		p >= 0xd800 && p <= 0xdbff
-	then i - 1 else
-	i
+	let c = Bigarray.Array1.get s i in
+	if i <= 0 || c < 0xdc00 || c > 0xdfff then i else
+	let n = i - 1 in
+	let p = Bigarray.Array1.unsafe_get s n in
+	if p < 0xd800 || p > 0xdbff then i else
+	n
 );;
 
 let utf16_encode ?(illegal_sequence: exn option)
