@@ -41,15 +41,15 @@ Introduction
 Types
 +++++
 
-================ ===================================================================
-``ucs4``         unsigned 31-bit int representing a code-point ( = ``int32_t`` )
+================ ==============================================================
+``Uint32.t``     unsigned 32-bit int ( = ``int32`` )
 ``utf8_char``    8-bit char ( = ``char`` )
 ``utf16_char``   16-bit char ( = ``int`` )
-``utf32_char``   31-bit char ( = ``ucs4`` )
+``utf32_char``   31-bit char ( = ``Uint32.t`` )
 ``utf8_string``  string of UTF-8 ( = ``string`` )
 ``utf16_string`` string of UTF-16 ( = ``Bigarray.Array1.t`` )
 ``utf32_string`` string of UTF-32 ( = ``Bigarray.Array1.t`` )
-================ ===================================================================
+================ ==============================================================
 
 Functions
 +++++++++
@@ -86,7 +86,8 @@ and surrogate pair will be taken as normal code-point.
 Limitations
 +++++++++++
 
-U+7FFFFFFF is the maximum that this library can handle correctly.
+U+7FFFFFFF is the maximum that this library can handle correctly in 32bit
+environments.
 
 License
 -------

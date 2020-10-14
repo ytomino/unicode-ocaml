@@ -57,19 +57,23 @@ let check_surrogate_pair (illegal_sequence: exn option) (code: int) = (
 	)
 );;
 
-let check_range (illegal_sequence: exn option) (code: Int32.t) = (
-	if code < 0l then (
-		optional_raise illegal_sequence
-	)
-);;
-
-type ucs4 = Int32.t;;
-
-module UCS4 = struct
-	include Int32;;
-	let of_int x = Int32.logand (Int32.of_int x) 0x7fffffffl;;
-	let to_int x = Int32.to_int x land 0x7fffffff;;
+module Uint32 = struct
+	type t = int32;;
+	let is_uint31 x = x >= 0l;;
+	let of_int x = (
+		if Sys.word_size <= 32 then Int32.logand (Int32.of_int x) 0x7fffffffl else
+		Int32.of_int x
+	);;
+	let of_int32 x = x;;
+	let to_int x = (
+		if Sys.word_size <= 32 then Int32.to_int x else
+		Int32.to_int x land (1 lsl 32 - 1)
+	);;
+	let to_int32 x = x;;
 end;;
+
+type uint32_elt = Bigarray.int32_elt;;
+let uint32 = Bigarray.int32;;
 
 type utf8_char = char;;
 type utf8_string = string;;
@@ -78,9 +82,9 @@ type utf16_char = int;;
 type utf16_string =
 	(int, Bigarray.int16_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t;;
 
-type utf32_char = UCS4.t;;
+type utf32_char = Uint32.t;;
 type utf32_string =
-	(UCS4.t, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t;;
+	(Uint32.t, uint32_elt, Bigarray.c_layout) Bigarray.Array1.t;;
 
 let utf8_get: utf8_string -> int -> utf8_char = String.get;;
 
@@ -314,6 +318,12 @@ let utf16_set_code ?(illegal_sequence: exn option) (dest: utf16_string)
 	index := utf16_encode ?illegal_sequence utf16_add dest !index code
 );;
 
+let check_range (illegal_sequence: exn option) (code: Uint32.t) = (
+	if not (Uint32.is_uint31 code) then (
+		optional_raise illegal_sequence
+	)
+);;
+
 let utf32_get: utf32_string -> int -> utf32_char = Bigarray.Array1.get;;
 
 let utf32_add (dest: utf32_string) (index: int) (item: utf32_char) = (
@@ -323,7 +333,7 @@ let utf32_add (dest: utf32_string) (index: int) (item: utf32_char) = (
 
 let utf32_sequence ?(illegal_sequence: exn option) (lead: utf32_char) = (
 	check_range illegal_sequence lead;
-	check_surrogate_pair illegal_sequence (UCS4.to_int lead);
+	check_surrogate_pair illegal_sequence (Uint32.to_int lead);
 	1
 );;
 
@@ -335,7 +345,7 @@ let utf32_decode ?(illegal_sequence: exn option)
 	ignore end_f;
 	let result = get_f d e in
 	check_range illegal_sequence result;
-	let result = UCS4.to_int result in
+	let result = Uint32.to_int result in
 	check_surrogate_pair illegal_sequence result;
 	let e = inc_f d e in
 	cont a b c d e (Uchar.unsafe_of_int result)
@@ -355,7 +365,7 @@ let utf32_encode ?(illegal_sequence: exn option)
 (
 	ignore illegal_sequence; (* without checking surrogate pair in set *)
 	let code = Uchar.to_int code in
-	f a b (UCS4.of_int code)
+	f a b (Uint32.of_int code)
 );;
 
 let utf32_set_code ?(illegal_sequence: exn option) (dest: utf32_string)
@@ -428,9 +438,7 @@ let utf16_of_utf32 ?(illegal_sequence: exn option) (source: utf32_string) = (
 
 let utf32_of_utf8 ?(illegal_sequence: exn option) (source: utf8_string) = (
 	let source_length = String.length source in
-	let result = Bigarray.Array1.create Bigarray.int32 Bigarray.c_layout
-		source_length
-	in
+	let result = Bigarray.Array1.create uint32 Bigarray.c_layout source_length in
 	let rec make illegal_sequence result j source i = (
 		if i >= String.length source then slice result 0 j else
 		utf8_decode ?illegal_sequence utf8_get succ_snd string_end illegal_sequence
@@ -444,9 +452,7 @@ let utf32_of_utf8 ?(illegal_sequence: exn option) (source: utf8_string) = (
 
 let utf32_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string) = (
 	let source_length = Bigarray.Array1.dim source in
-	let result = Bigarray.Array1.create Bigarray.int32 Bigarray.c_layout
-		source_length
-	in
+	let result = Bigarray.Array1.create uint32 Bigarray.c_layout source_length in
 	let rec make illegal_sequence result j source i = (
 		if i >= Bigarray.Array1.dim source then slice result 0 j else
 		utf16_decode ?illegal_sequence utf16_get succ_snd ba_end illegal_sequence
@@ -517,8 +523,8 @@ module UTF32 = struct
 	type t = utf32_string;;
 	external compare: t -> t -> int = "%compare";;
 	external length: t -> int = "%caml_ba_dim_1";;
-	let empty = Bigarray.Array1.of_array Bigarray.int32 Bigarray.c_layout [| |];;
-	let create = Bigarray.Array1.create Bigarray.int32 Bigarray.c_layout;;
+	let empty = Bigarray.Array1.of_array uint32 Bigarray.c_layout [| |];;
+	let create = Bigarray.Array1.create uint32 Bigarray.c_layout;;
 	let copy = ba_copy;;
 	let append = ba_append;;
 	let fill = ba_fill;;
@@ -532,5 +538,5 @@ module UTF32 = struct
 	let set_code = utf32_set_code;;
 	let of_utf8 = utf32_of_utf8;;
 	let of_utf16 = utf32_of_utf16;;
-	let of_array = Bigarray.Array1.of_array Bigarray.int32 Bigarray.c_layout;;
+	let of_array = Bigarray.Array1.of_array uint32 Bigarray.c_layout;;
 end;;

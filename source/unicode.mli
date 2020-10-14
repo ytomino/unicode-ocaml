@@ -1,17 +1,19 @@
-type ucs4 = Int32.t
-module UCS4: sig
-	include module type of Int32 with type t = ucs4
+module Uint32: sig
+	type t = int32
 	val of_int: int -> t
+	val of_int32: int32 -> t
 	val to_int: t -> int
+	val to_int32: t -> int32
 end
+type uint32_elt = Bigarray.int32_elt
+val uint32 : (Uint32.t, uint32_elt) Bigarray.kind
 type utf8_char = char
 type utf8_string = string
 type utf16_char = int
 type utf16_string =
 	(int, Bigarray.int16_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
-type utf32_char = UCS4.t
-type utf32_string =
-	(UCS4.t, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
+type utf32_char = Uint32.t
+type utf32_string = (Uint32.t, uint32_elt, Bigarray.c_layout) Bigarray.Array1.t
 val utf8_sequence: ?illegal_sequence:exn -> utf8_char -> int
 val utf8_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf8_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->

@@ -230,7 +230,9 @@ let iseq32_1 = Unicode.UTF32.of_array [| 0xffffffffl |];;
 
 assert (
 	let i = ref 0 in
-	Unicode.utf32_get_code iseq32_1 i = Uchar.unsafe_of_int 0x7fffffff
+	let r = Unicode.utf32_get_code iseq32_1 i in
+	r = Uchar.unsafe_of_int (if Sys.word_size <= 32 then ~-1 else 1 lsl 32 - 1)
+		&& !i = 1
 );;
 
 (* negative Uchar.t *)
@@ -258,7 +260,7 @@ assert (
 
 assert (
 	let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] negative in
-	r = [0x7fffffffl]
+	r = [if Sys.word_size <= 32 then 0x7fffffffl else 0xffffffffl]
 );;
 
 (* report *)
