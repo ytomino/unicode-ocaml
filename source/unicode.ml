@@ -57,6 +57,15 @@ let check_surrogate_pair (illegal_sequence: exn option) (code: int) = (
 	)
 );;
 
+module type Uint32_S = sig
+	type t [@@ocaml.immediate64]
+	val is_uint31: t -> bool
+	val of_int: int -> t
+	val of_int32: int32 -> t
+	val to_int: t -> int
+	val to_int32: t -> int32
+end;;
+
 module Uint32 = struct
 	type t = int32;;
 	let is_uint31 x = x >= 0l;;
@@ -71,6 +80,21 @@ module Uint32 = struct
 	);;
 	let to_int32 x = x;;
 end;;
+
+module Immediate_Uint32 = struct
+	type t = int;;
+	let is_uint31 x = x land lnot 0x7fffffff = 0;;
+	let of_int x = x land (1 lsl 32 - 1);;
+	let of_int32 x = Int32.to_int x land (1 lsl 32 - 1);;
+	let to_int x = x;;
+	let to_int32 = Int32.of_int;;
+end;;
+
+module Immediate64_Uint32 =
+	(val
+		if Sys.word_size <= 32 then (module Uint32: Uint32_S) else
+		(module Immediate_Uint32: Uint32_S)
+	);;
 
 type uint32_elt = Bigarray.int32_elt;;
 let uint32 = Bigarray.int32;;
@@ -319,22 +343,27 @@ let utf16_set_code ?(illegal_sequence: exn option) (dest: utf16_string)
 	index := utf16_encode ?illegal_sequence utf16_add dest !index code
 );;
 
-let check_range (illegal_sequence: exn option) (code: Uint32.t) = (
-	if not (Uint32.is_uint31 code) then (
+let check_range (illegal_sequence: exn option) (code: Immediate64_Uint32.t) = (
+	if not (Immediate64_Uint32.is_uint31 code) then (
 		optional_raise illegal_sequence
 	)
 );;
 
-let utf32_get: utf32_string -> int -> utf32_char = Bigarray.Array1.get;;
+let utf32_get (source: utf32_string) (index: int) = (
+	Immediate64_Uint32.of_int32 (Bigarray.Array1.get source index)
+);;
 
-let utf32_add (dest: utf32_string) (index: int) (item: utf32_char) = (
-	Bigarray.Array1.set dest index item;
+let utf32_add (dest: utf32_string) (index: int) (item: Immediate64_Uint32.t) =
+(
+	Bigarray.Array1.set dest index (Immediate64_Uint32.to_int32 item);
 	index + 1
 );;
 
 let utf32_sequence ?(illegal_sequence: exn option) (lead: utf32_char) = (
+	let lead = Immediate64_Uint32.of_int32 lead in
 	check_range illegal_sequence lead;
-	check_surrogate_pair illegal_sequence (Uint32.to_int lead);
+	let lead = Immediate64_Uint32.to_int lead in
+	check_surrogate_pair illegal_sequence lead;
 	1
 );;
 
@@ -345,18 +374,30 @@ let utf32_decode ?(illegal_sequence: exn option)
 (
 	ignore end_f;
 	let result = get_f d e in
+	let result = Immediate64_Uint32.of_int32 result in
 	check_range illegal_sequence result;
-	let result = Uint32.to_int result in
+	let result = Immediate64_Uint32.to_int result in
 	check_surrogate_pair illegal_sequence result;
 	let e = inc_f d e in
+	cont a b c d e (Uchar.unsafe_of_int result)
+);;
+
+(* immediate64 version *)
+let utf32_decode' ?(illegal_sequence: exn option) a b c (d: utf32_string)
+	(e: int) (cont: 'a -> 'b -> 'c -> utf32_string -> int -> Uchar.t -> 'f) =
+(
+	let result = utf32_get d e in
+	check_range illegal_sequence result;
+	let result = Immediate64_Uint32.to_int result in
+	check_surrogate_pair illegal_sequence result;
+	let e = succ_snd d e in
 	cont a b c d e (Uchar.unsafe_of_int result)
 );;
 
 let utf32_get_code ?(illegal_sequence: exn option) (source: utf32_string)
 	(index: int ref) =
 (
-	utf32_decode ?illegal_sequence utf32_get succ_snd ba_end () () index source
-		!index finish_get_code
+	utf32_decode' ?illegal_sequence () () index source !index finish_get_code
 );;
 
 let utf32_lead (_: utf32_string) (i: int) = i;;
@@ -369,10 +410,19 @@ let utf32_encode ?(illegal_sequence: exn option)
 	f a b (Uint32.of_int code)
 );;
 
+(* immediate64 version *)
+let utf32_encode' ?(illegal_sequence: exn option) (a: utf32_string) (b: int)
+	(code: Uchar.t) =
+(
+	ignore illegal_sequence; (* without checking surrogate pair in set *)
+	let code = Uchar.to_int code in
+	utf32_add a b (Immediate64_Uint32.of_int code)
+);;
+
 let utf32_set_code ?(illegal_sequence: exn option) (dest: utf32_string)
 	(index: int ref) (code: Uchar.t) =
 (
-	index := utf32_encode ?illegal_sequence utf32_add dest !index code
+	index := utf32_encode' ?illegal_sequence dest !index code
 );;
 
 let utf8_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string) = (
@@ -396,8 +446,8 @@ let utf8_of_utf32 ?(illegal_sequence: exn option) (source: utf32_string) = (
 	let rec make illegal_sequence result j source i = (
 		if i >= Bigarray.Array1.dim source
 		then Bytes.unsafe_to_string (Bytes.sub result 0 j) else
-		utf32_decode ?illegal_sequence utf32_get succ_snd ba_end illegal_sequence
-			result j source i (fun illegal_sequence result j source i code ->
+		utf32_decode' ?illegal_sequence illegal_sequence result j source i
+			(fun illegal_sequence result j source i code ->
 				let j = utf8_encode ?illegal_sequence utf8_add result j code in
 				make illegal_sequence result j source i
 			)
@@ -428,8 +478,8 @@ let utf16_of_utf32 ?(illegal_sequence: exn option) (source: utf32_string) = (
 	in
 	let rec make illegal_sequence result j source i = (
 		if i >= Bigarray.Array1.dim source then Bigarray.Array1.sub result 0 j else
-		utf32_decode ?illegal_sequence utf32_get succ_snd ba_end illegal_sequence
-			result j source i (fun illegal_sequence result j source i code ->
+		utf32_decode' ?illegal_sequence illegal_sequence result j source i
+			(fun illegal_sequence result j source i code ->
 				let j = utf16_encode ?illegal_sequence utf16_add result j code in
 				make illegal_sequence result j source i
 			)
@@ -444,7 +494,7 @@ let utf32_of_utf8 ?(illegal_sequence: exn option) (source: utf8_string) = (
 		if i >= String.length source then slice result 0 j else
 		utf8_decode ?illegal_sequence utf8_get succ_snd string_end illegal_sequence
 			result j source i (fun illegal_sequence result j source i code ->
-				let j = utf32_encode ?illegal_sequence utf32_add result j code in
+				let j = utf32_encode' ?illegal_sequence result j code in
 				make illegal_sequence result j source i
 			)
 	) in
@@ -458,7 +508,7 @@ let utf32_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string) = (
 		if i >= Bigarray.Array1.dim source then slice result 0 j else
 		utf16_decode ?illegal_sequence utf16_get succ_snd ba_end illegal_sequence
 			result j source i (fun illegal_sequence result j source i code ->
-				let j = utf32_encode ?illegal_sequence utf32_add result j code in
+				let j = utf32_encode' ?illegal_sequence result j code in
 				make illegal_sequence result j source i
 			)
 	) in
