@@ -42,7 +42,7 @@ Types
 +++++
 
 ================ ==============================================================
-``Uint32.t``     unsigned 32-bit int ( = ``int32`` )
+``Uint32.t``     unsigned 32-bit int
 ``utf8_char``    8-bit char ( = ``char`` )
 ``utf16_char``   16-bit char ( = ``int`` )
 ``utf32_char``   31-bit char ( = ``Uint32.t`` )

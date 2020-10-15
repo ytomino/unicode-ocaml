@@ -1,19 +1,18 @@
 module Uint32: sig
-	type t = int32
+	type t [@@ocaml.immediate64]
 	val of_int: int -> t
 	val of_int32: int32 -> t
 	val to_int: t -> int
 	val to_int32: t -> int32
 end
-type uint32_elt = Bigarray.int32_elt
-val uint32 : (Uint32.t, uint32_elt) Bigarray.kind
 type utf8_char = char
 type utf8_string = string
 type utf16_char = int
 type utf16_string =
 	(int, Bigarray.int16_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 type utf32_char = Uint32.t
-type utf32_string = (Uint32.t, uint32_elt, Bigarray.c_layout) Bigarray.Array1.t
+type utf32_string =
+	(int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 val utf8_sequence: ?illegal_sequence:exn -> utf8_char -> int
 val utf8_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf8_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
@@ -118,7 +117,7 @@ module UTF16: sig
 	val of_array: elm array -> t
 end
 module UTF32: sig
-	type elm = utf32_char
+	type elm = int32
 	type t = utf32_string
 	external compare: t -> t -> int = "%compare"
 	external length: t -> int = "%caml_ba_dim_1"
@@ -133,15 +132,15 @@ module UTF32: sig
 	external sub: t -> int -> int -> t = "caml_ba_sub"
 	val fill: t -> int -> int -> elm -> unit
 	val blit: t -> int -> t -> int -> int -> unit
-	val sequence: ?illegal_sequence:exn -> elm -> int
+	val sequence: ?illegal_sequence:exn -> utf32_char -> int
 	val max_sequence: int
-	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elm) -> ('d -> 'e -> 'e) ->
-		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
+	val decode: ?illegal_sequence:exn -> ('d -> 'e -> utf32_char) ->
+		('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
-	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elm -> 'b) -> 'a -> 'b ->
-		Uchar.t -> 'b
+	val encode: ?illegal_sequence:exn -> ('a -> 'b -> utf32_char -> 'b) -> 'a ->
+		'b -> Uchar.t -> 'b
 	val set_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t -> unit
 	val of_utf8: ?illegal_sequence:exn -> utf8_string -> t
 	val of_utf16: ?illegal_sequence:exn -> utf16_string -> t

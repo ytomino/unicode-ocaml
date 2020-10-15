@@ -270,7 +270,10 @@ assert (
 
 assert (
 	let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] negative in
-	r = [if Sys.word_size <= 32 then 0x7fffffffl else 0xffffffffl]
+	r = [
+		Unicode.Uint32.of_int32
+			(if Sys.word_size <= 32 then 0x7fffffffl else 0xffffffffl)
+	]
 );;
 
 (* report *)
