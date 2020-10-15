@@ -55,27 +55,27 @@ module UTF8: sig
 	type t = utf8_string
 	val compare: t -> t -> int
 	external length: t -> int = "%string_length"
-	external get: t -> int -> char = "%string_safe_get"
-	external unsafe_get: t -> int -> char = "%string_unsafe_get"
-	external set: bytes -> int -> char -> unit = "%string_safe_set"
+	external get: t -> int -> elm = "%string_safe_get"
+	external unsafe_get: t -> int -> elm = "%string_unsafe_get"
+	external set: bytes -> int -> elm -> unit = "%string_safe_set"
 		[@@ocaml.deprecated]
-	external unsafe_set: bytes -> int -> char -> unit = "%string_unsafe_set"
+	external unsafe_set: bytes -> int -> elm -> unit = "%string_unsafe_set"
 		[@@ocaml.deprecated]
 	val empty: t
 	external create: int -> bytes = "caml_create_string" [@@ocaml.deprecated]
 	val copy: t -> t [@@ocaml.deprecated]
 	val append: t -> t -> t
 	val sub: t -> int -> int -> t
-	val fill: bytes -> int -> int -> char -> unit [@@ocaml.deprecated]
-	external unsafe_fill: bytes -> int -> int -> char -> unit = "caml_fill_string"
+	val fill: bytes -> int -> int -> elm -> unit [@@ocaml.deprecated]
+	external unsafe_fill: bytes -> int -> int -> elm -> unit = "caml_fill_string"
 		[@@noalloc] [@@ocaml.deprecated]
 	val blit: t -> int -> bytes -> int -> int -> unit [@@ocaml.deprecated]
 	external unsafe_blit: t -> int -> bytes -> int -> int -> unit =
 		"caml_blit_string" [@@noalloc] [@@ocaml.deprecated]
 	val sequence: ?illegal_sequence:exn -> elm -> int
 	val max_sequence: int
-	val decode: ?illegal_sequence:exn -> ('d -> 'e -> utf8_char) ->
-		('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
+	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elm) -> ('d -> 'e -> 'e) ->
+		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
@@ -105,8 +105,8 @@ module UTF16: sig
 	val blit: t -> int -> t -> int -> int -> unit
 	val sequence: ?illegal_sequence:exn -> elm -> int
 	val max_sequence: int
-	val decode: ?illegal_sequence:exn -> ('d -> 'e -> utf16_char) ->
-		('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
+	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elm) -> ('d -> 'e -> 'e) ->
+		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
@@ -135,8 +135,8 @@ module UTF32: sig
 	val blit: t -> int -> t -> int -> int -> unit
 	val sequence: ?illegal_sequence:exn -> elm -> int
 	val max_sequence: int
-	val decode: ?illegal_sequence:exn -> ('d -> 'e -> utf32_char) ->
-		('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
+	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elm) -> ('d -> 'e -> 'e) ->
+		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
