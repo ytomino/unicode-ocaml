@@ -494,7 +494,7 @@ let utf32_of_utf16 ?(illegal_sequence: exn option) (source: utf16_string) = (
 );;
 
 module UTF8 = struct
-	type elm = utf8_char;;
+	type elt = utf8_char;;
 	include String;;
 	let empty = "";;
 	let append = ( ^ );;
@@ -507,7 +507,7 @@ module UTF8 = struct
 	let set_code = utf8_set_code;;
 	let of_utf16 = utf8_of_utf16;;
 	let of_utf32 = utf8_of_utf32;;
-	let of_array (source: elm array) = (
+	let of_array (source: elt array) = (
 		let length = Array.length source in
 		let result = Bytes.create length in
 		for i = 0 to length - 1 do
@@ -522,7 +522,7 @@ module type BA1_without_t = module type of Bigarray.Array1
 
 module UTF16 = struct
 	include (struct include Bigarray.Array1 end: BA1_without_t);;
-	type elm = utf16_char;;
+	type elt = utf16_char;;
 	type t = utf16_string;;
 	external compare: t -> t -> int = "%compare";;
 	external length: t -> int = "%caml_ba_dim_1";;
@@ -548,7 +548,7 @@ end;;
 
 module UTF32 = struct
 	include (struct include Bigarray.Array1 end: BA1_without_t);;
-	type elm = int32;;
+	type elt = int32;;
 	type t = utf32_string;;
 	external compare: t -> t -> int = "%compare";;
 	external length: t -> int = "%caml_ba_dim_1";;

@@ -1,20 +1,20 @@
 module type S = sig
-	type elm
+	type elt
 	type item
 	type t
 	type mutable_t
 	val compare: t -> t -> int
 	val length: t -> int
-	val get: t -> int -> elm
-	val unsafe_get: t -> int -> elm
-	val set: mutable_t -> int -> elm -> unit
-	val unsafe_set: mutable_t -> int -> elm -> unit
+	val get: t -> int -> elt
+	val unsafe_get: t -> int -> elt
+	val set: mutable_t -> int -> elt -> unit
+	val unsafe_set: mutable_t -> int -> elt -> unit
 	val empty: t
 	val create: int -> mutable_t
 	val copy: t -> t
 	val append: t -> t -> t
 	val sub: t -> int -> int -> t
-	val fill: mutable_t -> int -> int -> elm -> unit
+	val fill: mutable_t -> int -> int -> elt -> unit
 	val blit: t -> int -> mutable_t -> int -> int -> unit
 	val sequence: ?illegal_sequence:exn -> item -> int
 	val max_sequence: int
@@ -27,7 +27,7 @@ module type S = sig
 		Uchar.t -> 'b
 	val set_code: ?illegal_sequence:exn -> mutable_t -> int ref -> Uchar.t ->
 		unit
-	val of_array: elm array -> t
+	val of_array: elt array -> t
 end;;
 
 open Unicode;;
