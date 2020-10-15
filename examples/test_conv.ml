@@ -237,6 +237,7 @@ assert (
 (* UTF-32 illegal sequence *)
 
 let iseq32_1 = Unicode.UTF32.of_array [| 0xffffffffl |];;
+let iseq32_2 = Unicode.UTF32.of_array [| 0xfffffffel |];;
 
 assert (
 	let i = ref 0 in
@@ -244,36 +245,81 @@ assert (
 	r = Uchar.unsafe_of_int (if Sys.word_size <= 32 then ~-1 else 1 lsl 32 - 1)
 		&& !i = 1
 );;
+assert (
+	let i = ref 0 in
+	let r = Unicode.utf32_get_code iseq32_2 i in
+	r = Uchar.unsafe_of_int (if Sys.word_size <= 32 then ~-2 else 1 lsl 32 - 2)
+		&& !i = 1
+);;
 
-(* negative Uchar.t *)
+(* encode U+7FFFFFFF *)
 
-let negative = Uchar.unsafe_of_int ~-1;;
+let max_uchar = Uchar.unsafe_of_int 0x7fffffff;;
 
 assert (
 	let r = Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
-		() (Buffer.create 6) negative
+		() (Buffer.create 6) max_uchar
 	in
 	Buffer.contents r = "\xfd\xbf\xbf\xbf\xbf\xbf"
 );;
 
-if Sys.word_size > 32 then (
-	ignore (
-		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b) ()
-			(Buffer.create 6) (Uchar.unsafe_of_int (1 lsl 32))
-	) (* the result is undefined *)
-);;
-
 assert (
-	let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] negative in
+	let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] max_uchar in
 	List.rev r = [0xdbff; 0xdfff]
 );;
 
 assert (
-	let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] negative in
-	r = [
-		Unicode.Uint32.of_int32
-			(if Sys.word_size <= 32 then 0x7fffffffl else 0xffffffffl)
-	]
+	let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] max_uchar in
+	r = [Unicode.Uint32.of_int32 0x7fffffffl]
+);;
+
+if Sys.word_size > 32 then (
+	(* encode over 31bits, these values can only exist in UTF-32 *)
+	let min_illegal = Uchar.unsafe_of_int (1 lsl 31) in
+	assert (
+		let r = Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
+			() (Buffer.create 6) min_illegal
+		in
+		Buffer.contents r = "\xfd\xbf\xbf\xbf\xbf\xbf"
+	);
+	assert (
+		let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] min_illegal in
+		List.rev r = [0xdbff; 0xdfff]
+	);
+	assert (
+		let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] min_illegal in
+		r = [Unicode.Uint32.of_int32 0x80000000l]
+	);
+	let max_illegal = Uchar.unsafe_of_int (1 lsl 32 - 1) in
+	assert (
+		let r = Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
+			() (Buffer.create 6) max_illegal
+		in
+		Buffer.contents r = "\xfd\xbf\xbf\xbf\xbf\xbf"
+	);
+	assert (
+		let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] max_illegal in
+		List.rev r = [0xdbff; 0xdfff]
+	);
+	assert (
+		let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] max_illegal in
+		r = [Unicode.Uint32.of_int32 0xffffffffl]
+	);
+	(* encode over 32bits, the results are undefined *)
+	let over32 = Uchar.unsafe_of_int (1 lsl 32) in
+	ignore (
+		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b) ()
+			(Buffer.create 6) over32
+	);
+	ignore (Unicode.utf16_encode (fun () b item -> item :: b) () [] over32);
+	ignore (Unicode.utf32_encode (fun () b item -> item :: b) () [] over32);
+	let negative = Uchar.unsafe_of_int ~-1 in
+	ignore (
+		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b) ()
+			(Buffer.create 6) negative
+	);
+	ignore (Unicode.utf16_encode (fun () b item -> item :: b) () [] negative);
+	ignore (Unicode.utf32_encode (fun () b item -> item :: b) () [] negative)
 );;
 
 (* report *)

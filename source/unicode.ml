@@ -221,7 +221,7 @@ let utf8_lead (s: utf8_string) (i: int) = (
 let utf8_encode ?(illegal_sequence: exn option)
 	(f: 'a -> 'b -> utf8_char -> 'b) a b (code: Uchar.t) =
 (
-	ignore illegal_sequence; (* without checking surrogate pair in set *)
+	(* without checking surrogate pair in set *)
 	let rec tails f offset a b code = (
 		if offset <= 0 then b else (
 			let offset = offset - 6 in
@@ -230,6 +230,13 @@ let utf8_encode ?(illegal_sequence: exn option)
 		)
 	) in
 	let code = Uchar.to_int code in
+	let code =
+		if code land lnot 0x7fffffff <> 0 then (
+			optional_raise illegal_sequence; (* only when Sys.word_size > 32 *)
+			0x7fffffff
+		) else
+		code
+	in
 	let length = utf8_storing_length code in
 	if length = 1 then f a b (char_of_int code) else (
 		let offset = (length - 1) * 6 in
