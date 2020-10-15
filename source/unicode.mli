@@ -1,5 +1,6 @@
 module Uint32: sig
 	type t [@@ocaml.immediate64]
+	val compare: t -> t -> int
 	val of_int: int -> t
 	val of_int32: int32 -> t
 	val to_int: t -> int
