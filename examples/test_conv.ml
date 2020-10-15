@@ -129,8 +129,8 @@ assert (
 assert (
 	let s = "\xfd\xbf\xbf\xbf\xbf\xbf" in
 	let i = ref 0 in
-	Unicode.utf8_get_code ~illegal_sequence:exn s i = Uchar.unsafe_of_int 0x7fffffff
-		&& !i = 6
+	let r = Unicode.utf8_get_code ~illegal_sequence:exn s i in
+	r = Uchar.unsafe_of_int 0x7fffffff && !i = 6
 );;
 
 (* UTF-8 illegal sequence *)
