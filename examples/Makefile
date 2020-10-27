@@ -1,7 +1,11 @@
 HOST:=$(shell $(CC) -dumpmachine)
 TARGET=$(HOST)
 
-ifeq ($(TARGET),$(HOST))
+ifneq ($(TARGET),$(HOST))
+PROGRAMPREFIX=$(TARGET)-
+BINLN=
+else
+PROGRAMPREFIX=
 ifneq ($(findstring mingw,$(HOST))$(findstring msys,$(HOST)),)
 BINLN=
 else
@@ -10,12 +14,10 @@ endif
 ifneq ($(shell rlwrap --version),)
 RLWRAP=rlwrap
 endif
-else
-BINLN=
 endif
 
-OCAMLC=ocamlc
-OCAMLOPT=ocamlopt
+OCAMLC=$(PROGRAMPREFIX)ocamlc
+OCAMLOPT=$(OCAMLC:c=opt)
 
 BUILDSUFFIX=.noindex
 BUILDDIR=$(TARGET)$(BUILDSUFFIX)
@@ -33,12 +35,12 @@ all: \
 
 $(BUILDDIR)/%.byte.exe: %.ml $(BUILDDIR)/unicode.cma
 	$(OCAMLC) -c -o $(BUILDDIR)/$*.cmo -I $(BUILDDIR) $(OCAMLCFLAGS) $<
-	$(OCAMLC) -o $(BUILDDIR)/$*.byte.exe -I $(BUILDDIR) bigarray.cma unicode.cma $(BUILDDIR)/$*.cmo
+	$(OCAMLC) -o $@ -I $(BUILDDIR) bigarray.cma unicode.cma $(BUILDDIR)/$*.cmo
 
 ifneq ($(OCAMLOPT),)
 $(BUILDDIR)/%.opt.exe: %.ml $(BUILDDIR)/unicode.cmxa
-	$(OCAMLOPT) -c -o $(BUILDDIR)/$*.cmx -I $(BUILDDIR) $(OCAMLCFLAGS) $*.ml
-	$(OCAMLOPT) -o $(BUILDDIR)/$*.opt.exe -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/$*.cmx
+	$(OCAMLOPT) -c -o $(BUILDDIR)/$*.cmx -I $(BUILDDIR) $(OCAMLCFLAGS) $<
+	$(OCAMLOPT) -o $@ -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/$*.cmx
 endif
 
 $(BUILDDIR)/test_sig.%.exe: OCAMLCFLAGS+=-w -3
@@ -52,15 +54,15 @@ ifneq ($(OCAMLOPT),)
 endif
 
 interactive: $(BUILDDIR)/unicode.cma
-	$(RLWRAP) ocaml -I $(BUILDDIR) bigarray.cma unicode.cma
+	$(RLWRAP) ocaml -I $(BUILDDIR) $(OCAMLCFLAGS) bigarray.cma unicode.cma
 
-$(BUILDDIR)/unicode.cma $(if $(OCAMLOPT),$(BUILDDIR)/unicode.cmxa): $(wildcard ../source/*.ml*)
+$(BUILDDIR)/unicode.cma $(if $(OCAMLOPT),$(BUILDDIR)/unicode.cmxa): $(wildcard ../source/unicode*)
 	$(MAKE) -C ../source install \
 		BUILDDIR=$(abspath $(UNICODE_BUILDDIR)) \
 		INSTALLDIR=$(abspath $(BUILDDIR))
 
 $(BINLN):
-	-ln -s $(BUILDDIR) $@
+	ln -s $(BUILDDIR) $@
 
 clean:
 	-$(MAKE) -C ../source clean uninstall \
