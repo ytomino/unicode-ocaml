@@ -68,10 +68,10 @@ module UTF8: sig
 	val sub: t -> int -> int -> t
 	val fill: bytes -> int -> int -> elt -> unit [@@ocaml.deprecated]
 	external unsafe_fill: bytes -> int -> int -> elt -> unit = "caml_fill_string"
-		[@@noalloc] [@@ocaml.deprecated]
+		[@@ocaml.noalloc] [@@ocaml.deprecated]
 	val blit: t -> int -> bytes -> int -> int -> unit [@@ocaml.deprecated]
 	external unsafe_blit: t -> int -> bytes -> int -> int -> unit =
-		"caml_blit_string" [@@noalloc] [@@ocaml.deprecated]
+		"caml_blit_string" [@@ocaml.noalloc] [@@ocaml.deprecated]
 	val sequence: ?illegal_sequence:exn -> elt -> int
 	val max_sequence: int
 	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
