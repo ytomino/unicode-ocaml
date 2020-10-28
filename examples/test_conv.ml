@@ -29,6 +29,8 @@ assert (Unicode.utf8_lead data8 2 = 0);;
 assert (Unicode.utf8_lead "\x80" 0 = 0);;
 assert (Unicode.utf8_lead "\xc0" 0 = 0);;
 assert (Unicode.utf8_lead "\xc0\x80\x80" 2 = 2);;
+assert (Unicode.utf8_lead "#\xfc\x80\x80\x80\x80\x80" 6 = 1);;
+assert (Unicode.utf8_lead "#\xfc\x80\x80\x80\x80\x80\x80" 7 = 7);;
 
 let pair_data16 = Unicode.utf16_of_utf32
 	(Unicode.UTF32.of_array

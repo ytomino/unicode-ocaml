@@ -249,7 +249,7 @@ let utf8_encode ?(illegal_sequence: exn option)
 
 let utf8_lead (source: utf8_string) (index: int) = (
 	let rec lead source index j c = (
-		if j <= 0 || not (utf8_is_trailing c) then (
+		if j <= 0 || j + 5 <= index || not (utf8_is_trailing c) then (
 			if j + utf8_sequence (c) <= index then index else
 			j
 		) else
