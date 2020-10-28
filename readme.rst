@@ -45,11 +45,13 @@ Types
 ``Uint32.t``     unsigned 32bit int
 ``utf8_char``    8bit char ( = ``char`` )
 ``utf16_char``   16bit char ( = ``int`` )
-``utf32_char``   31bit char ( = ``Uint32.t`` )
+``utf32_char``   32bit char ( = ``Uint32.t`` )
 ``utf8_string``  string of UTF-8 ( = ``string`` )
 ``utf16_string`` string of UTF-16 ( = ``Bigarray.Array1.t`` )
 ``utf32_string`` string of UTF-32 ( = ``Bigarray.Array1.t`` )
 ================ ==============================================================
+
+And ``Uchar.t`` of Stdlib is used to represent a 31bit code point.
 
 Functions
 +++++++++
