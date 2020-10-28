@@ -87,6 +87,31 @@ module UTF8: sig
 	val of_utf32: ?illegal_sequence:exn -> utf32_string -> t
 	val of_array: elt array -> t
 end
+module UTF8_Bytes: sig
+	type elt = utf8_char
+	type t = bytes
+	val compare: t -> t -> int
+	external length: t -> int = "%bytes_length"
+	external get: t -> int -> elt = "%bytes_safe_get"
+	external unsafe_get: t -> int -> elt = "%bytes_unsafe_get"
+	external set: t -> int -> elt -> unit = "%bytes_safe_set"
+	external unsafe_set: t -> int -> elt -> unit = "%bytes_unsafe_set"
+	val empty: t
+	external create: int -> t = "caml_create_bytes"
+	val copy: t -> t
+	val append: t -> t -> t
+	val sub: t -> int -> int -> t
+	val fill: t -> int -> int -> elt -> unit
+	external unsafe_fill: t -> int -> int -> elt -> unit = "caml_fill_bytes"
+		[@@ocaml.noalloc]
+	val blit: t -> int -> t -> int -> int -> unit
+	external unsafe_blit: t -> int -> t -> int -> int -> unit = "caml_blit_bytes"
+		[@@ocaml.noalloc]
+	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
+	val lead: t -> int -> int
+	val set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit
+	val of_array: elt array -> t
+end
 module UTF16: sig
 	type elt = utf16_char
 	type t = utf16_string

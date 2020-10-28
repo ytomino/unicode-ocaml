@@ -30,6 +30,15 @@ let ba_blit source srcoff dest destoff len = (
 	Bigarray.Array1.blit (slice source srcoff len) (slice dest destoff len)
 );;
 
+let bytes_of_array source = (
+	let length = Array.length source in
+	let result = Bytes.create length in
+	for i = 0 to length - 1 do
+		Bytes.unsafe_set result i (Array.unsafe_get source i)
+	done;
+	result
+);;
+
 let string_end source index = (
 	index >= String.length source
 );;
@@ -521,13 +530,29 @@ module UTF8 = struct
 	let of_utf16 = utf8_of_utf16;;
 	let of_utf32 = utf8_of_utf32;;
 	let of_array (source: elt array) = (
-		let length = Array.length source in
-		let result = Bytes.create length in
-		for i = 0 to length - 1 do
-			Bytes.unsafe_set result i (Array.unsafe_get source i)
-		done;
-		Bytes.unsafe_to_string result
+		Bytes.unsafe_to_string (bytes_of_array source)
 	);;
+end;;
+
+module UTF8_Bytes = struct
+	type elt = utf8_char;;
+	include Bytes;;
+	let append (x: t) (y: t) = (
+		let x_length = length x in
+		let y_length = length y in
+		let result = create (x_length + y_length) in
+		unsafe_blit x 0 result 0 x_length;
+		unsafe_blit y 0 result x_length y_length;
+		result
+	);;
+	let get_code ?(illegal_sequence: exn option) (source: t) (index: int ref) = (
+		utf8_get_code ?illegal_sequence (unsafe_to_string source) index
+	);;
+	let lead (source: t) (index: int) = (
+		utf8_lead (unsafe_to_string source) index
+	);;
+	let set_code = utf8_set_code;;
+	let of_array = bytes_of_array;;
 end;;
 
 module type BA1_without_t = module type of Bigarray.Array1
