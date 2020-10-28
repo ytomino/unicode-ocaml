@@ -42,10 +42,10 @@ Types
 +++++
 
 ================ ==============================================================
-``Uint32.t``     unsigned 32-bit int
-``utf8_char``    8-bit char ( = ``char`` )
-``utf16_char``   16-bit char ( = ``int`` )
-``utf32_char``   31-bit char ( = ``Uint32.t`` )
+``Uint32.t``     unsigned 32bit int
+``utf8_char``    8bit char ( = ``char`` )
+``utf16_char``   16bit char ( = ``int`` )
+``utf32_char``   31bit char ( = ``Uint32.t`` )
 ``utf8_string``  string of UTF-8 ( = ``string`` )
 ``utf16_string`` string of UTF-16 ( = ``Bigarray.Array1.t`` )
 ``utf32_string`` string of UTF-32 ( = ``Bigarray.Array1.t`` )
@@ -55,12 +55,12 @@ Functions
 +++++++++
 
 ================== ======================================================
-``utf_X_sequence`` length of single code-point of the leading element
-``utf_X_decode``   decoding single code-point
-``utf_X_get_code`` decoding single code-point from the string
+``utf_X_sequence`` length of single code point of the leading element
+``utf_X_decode``   decoding single code point
+``utf_X_get_code`` decoding single code point from the string
 ``utf_X_lead``     getting index of the leading element from any index
-``utf_X_encode``   encoding single code-point
-``utf_X_set_code`` encoding single code-point to the string
+``utf_X_encode``   encoding single code point
+``utf_X_set_code`` encoding single code point to the string
 ``utf_X_of_utf_X`` converting all elements of the string
 ================== ======================================================
 

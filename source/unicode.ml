@@ -197,7 +197,7 @@ let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 	) else (
 		optional_raise illegal_sequence;
 		let fake = lead + 0x7fffff00 in
-			(* out of meaning code-points, by way of precaution *)
+			(* out of meaning code points, by way of precaution *)
 		cont a b c d e (Uchar.unsafe_of_int fake)
 	)
 );;
