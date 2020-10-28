@@ -65,6 +65,7 @@ module type Uint32_S = sig
 	val of_int32: int32 -> t
 	val to_int: t -> int
 	val to_int32: t -> int32
+	val unsafe_get: t array -> int -> t (* specialized *)
 end;;
 
 module Non_immediate_Uint32 = struct
@@ -81,6 +82,7 @@ module Non_immediate_Uint32 = struct
 		Int32.to_int x land (1 lsl 32 - 1)
 	);;
 	let to_int32 x = x;;
+	let unsafe_get: t array -> int -> t = Array.unsafe_get;;
 end;;
 
 module Immediate_Uint32 = struct
@@ -91,6 +93,7 @@ module Immediate_Uint32 = struct
 	let of_int32 x = Int32.to_int x land (1 lsl 32 - 1);;
 	let to_int x = x;;
 	let to_int32 = Int32.of_int;;
+	let unsafe_get: t array -> int -> t = Array.unsafe_get;;
 end;;
 
 module Uint32 =
@@ -558,15 +561,29 @@ end;;
 
 module UTF32 = struct
 	include (struct include Bigarray.Array1 end: BA1_without_t);;
-	type elt = int32;;
+	type elt = utf32_char;;
 	type t = utf32_string;;
 	external compare: t -> t -> int = "%compare";;
 	external length: t -> int = "%caml_ba_dim_1";;
+	let get (a: t) (x: int) = (
+		Uint32.of_int32 (get a x)
+	);;
+	let unsafe_get (a: t) (x: int) = (
+		Uint32.of_int32 (unsafe_get a x)
+	);;
+	let set (a: t) (x: int) (v: elt) = (
+		set a x (Uint32.to_int32 v)
+	);;
+	let unsafe_set (a: t) (x: int) (v: elt) = (
+		unsafe_set a x (Uint32.to_int32 v)
+	);;
 	let empty = Bigarray.Array1.of_array Bigarray.int32 Bigarray.c_layout [| |];;
 	let create = Bigarray.Array1.create Bigarray.int32 Bigarray.c_layout;;
 	let copy = ba_copy;;
 	let append = ba_append;;
-	let fill = ba_fill;;
+	let fill (a: t) (start: int) (len: int) (c: elt) = (
+		ba_fill a start len (Uint32.to_int32 c)
+	);;
 	let blit = ba_blit;;
 	let sequence = utf32_sequence;;
 	let max_sequence = 1;;
@@ -577,5 +594,12 @@ module UTF32 = struct
 	let set_code = utf32_set_code;;
 	let of_utf8 = utf32_of_utf8;;
 	let of_utf16 = utf32_of_utf16;;
-	let of_array = Bigarray.Array1.of_array Bigarray.int32 Bigarray.c_layout;;
+	let of_array (source: elt array) = (
+		let length = Array.length source in
+		let result = create length in
+		for i = 0 to length - 1 do
+			unsafe_set result i (Uint32.unsafe_get source i)
+		done;
+		result
+	);;
 end;;

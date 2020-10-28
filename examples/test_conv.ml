@@ -31,7 +31,8 @@ assert (Unicode.utf8_lead "\xc0" 0 = 0);;
 assert (Unicode.utf8_lead "\xc0\x80\x80" 2 = 2);;
 
 let pair_data16 = Unicode.utf16_of_utf32
-	(Unicode.UTF32.of_array [| 0x10000l; 0x10001l; 0x10002l |]);;
+	(Unicode.UTF32.of_array
+		(Array.map Unicode.Uint32.of_int32 [| 0x10000l; 0x10001l; 0x10002l |]));;
 assert (Unicode.utf16_lead pair_data16 5 = 4);;
 assert (Unicode.utf16_lead pair_data16 4 = 4);;
 assert (Unicode.utf16_lead pair_data16 3 = 2);;
@@ -236,8 +237,10 @@ assert (
 
 (* UTF-32 illegal sequence *)
 
-let iseq32_1 = Unicode.UTF32.of_array [| 0xffffffffl |];;
-let iseq32_2 = Unicode.UTF32.of_array [| 0xfffffffel |];;
+let iseq32_1 = Unicode.UTF32.of_array
+	(Array.map Unicode.Uint32.of_int32 [| 0xffffffffl |]);;
+let iseq32_2 = Unicode.UTF32.of_array
+	(Array.map Unicode.Uint32.of_int32 [| 0xfffffffel |]);;
 
 assert (
 	let i = ref 0 in

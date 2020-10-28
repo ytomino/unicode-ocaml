@@ -118,14 +118,14 @@ module UTF16: sig
 	val of_array: elt array -> t
 end
 module UTF32: sig
-	type elt = int32
+	type elt = utf32_char
 	type t = utf32_string
 	external compare: t -> t -> int = "%compare"
 	external length: t -> int = "%caml_ba_dim_1"
-	external get: t -> int -> elt = "%caml_ba_ref_1"
-	external unsafe_get: t -> int -> elt = "%caml_ba_unsafe_ref_1"
-	external set: t -> int -> elt -> unit = "%caml_ba_set_1"
-	external unsafe_set: t -> int -> elt -> unit = "%caml_ba_unsafe_set_1"
+	val get: t -> int -> elt
+	val unsafe_get: t -> int -> elt
+	val set: t -> int -> elt -> unit
+	val unsafe_set: t -> int -> elt -> unit
 	val empty: t
 	val create: int -> t
 	val copy: t -> t
@@ -133,15 +133,15 @@ module UTF32: sig
 	external sub: t -> int -> int -> t = "caml_ba_sub"
 	val fill: t -> int -> int -> elt -> unit
 	val blit: t -> int -> t -> int -> int -> unit
-	val sequence: ?illegal_sequence:exn -> utf32_char -> int
+	val sequence: ?illegal_sequence:exn -> elt -> int
 	val max_sequence: int
-	val decode: ?illegal_sequence:exn -> ('d -> 'e -> utf32_char) ->
-		('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
+	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
+		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
-	val encode: ?illegal_sequence:exn -> ('a -> 'b -> utf32_char -> 'b) -> 'a ->
-		'b -> Uchar.t -> 'b
+	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
+		Uchar.t -> 'b
 	val set_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t -> unit
 	val of_utf8: ?illegal_sequence:exn -> utf8_string -> t
 	val of_utf16: ?illegal_sequence:exn -> utf16_string -> t

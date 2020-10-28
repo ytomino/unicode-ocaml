@@ -6,6 +6,15 @@ assert (UTF8.of_array [| |] = "");;
 assert (UTF8.of_array [| 'A' |] = "A");;
 assert (UTF8.of_array [| 'A'; 'B' |] = "AB");;
 
+(* UTF32.of_array *)
+
+assert (UTF32.of_array [| |] = UTF32.empty);;
+assert (UTF32.of_array [| Uint32.of_int 0x41 |] = UTF32.of_utf8 "A");;
+assert (
+	let r = UTF32.of_array [| Uint32.of_int 0x41 ; Uint32.of_int 0x42 |] in
+	r = UTF32.of_utf8 "AB"
+);;
+
 (* UTF16/32.copy *)
 
 let a = utf16_of_utf8 "ABC" in
