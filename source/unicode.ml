@@ -151,6 +151,10 @@ let utf8_sequence ?(illegal_sequence: exn option) (lead: utf8_char) = (
 	)
 );;
 
+let utf8_is_trailing (item: utf8_char) = (
+	int_of_char item land 0b11000000 = 0b10000000
+);;
+
 let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 	(inc_f: 'd -> 'e -> 'e) (end_f: 'd -> 'e -> bool) a b c d e
 	(cont: 'a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) =
@@ -171,12 +175,13 @@ let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 				optional_raise illegal_sequence;
 				finish illegal_sequence a b c d e cont length (code lsl offset)
 			) else (
-				let tail = int_of_char (get_f d e) in
-				if tail < 0b10000000 || tail > 0b10111111 then (
+				let tail = get_f d e in
+				if not (utf8_is_trailing tail) then (
 					(* trailing is illegal *)
 					optional_raise illegal_sequence;
 					finish illegal_sequence a b c d e cont length (code lsl offset)
 				) else (
+					let tail = int_of_char tail in
 					let e = inc_f d e in
 					tails illegal_sequence get_f inc_f end_f a b c d e cont length (offset - 6)
 						(code lsl 6 lor (tail land 0b00111111))
@@ -251,7 +256,7 @@ let utf8_get_code ?(illegal_sequence: exn option) (source: utf8_string)
 
 let utf8_lead (source: utf8_string) (index: int) = (
 	let rec lead source index j c = (
-		if j <= 0 || int_of_char c land 0b11000000 <> 0b10000000 then (
+		if j <= 0 || not (utf8_is_trailing c) then (
 			if j + utf8_sequence (c) <= index then index else
 			j
 		) else
@@ -282,6 +287,10 @@ let utf16_sequence ?(illegal_sequence: exn option) (lead: utf16_char) = (
 	)
 );;
 
+let utf16_is_trailing (item: utf16_char) = (
+	item land lnot 0x03ff = 0xdc00
+);;
+
 let utf16_decode ?(illegal_sequence: exn option)
 	(get_f: 'd -> 'e -> utf16_char) (inc_f: 'd -> 'e -> 'e)
 	(end_f: 'd -> 'e -> bool) a b c d e
@@ -299,7 +308,7 @@ let utf16_decode ?(illegal_sequence: exn option)
 				0, e
 			) else (
 				let tail = get_f d e in
-				if tail < 0xdc00 || tail > 0xdfff then (
+				if not (utf16_is_trailing tail) then (
 					(* leading, but trailing is illegal *)
 					optional_raise illegal_sequence;
 					0, e
@@ -349,7 +358,7 @@ let utf16_get_code ?(illegal_sequence: exn option) (source: utf16_string)
 
 let utf16_lead (source: utf16_string) (index: int) = (
 	let c = Bigarray.Array1.get source index in
-	if index <= 0 || c < 0xdc00 || c > 0xdfff then index else
+	if index <= 0 || not (utf16_is_trailing c) then index else
 	let n = index - 1 in
 	let p = Bigarray.Array1.unsafe_get source n in
 	if p < 0xd800 || p > 0xdbff then index else
@@ -383,6 +392,8 @@ let utf32_sequence ?(illegal_sequence: exn option) (lead: utf32_char) = (
 	check_surrogate_pair illegal_sequence lead;
 	1
 );;
+
+let utf32_is_trailing (_: utf32_char) = false;;
 
 let utf32_decode ?(illegal_sequence: exn option)
 	(get_f: 'd -> 'e -> utf32_char) (inc_f: 'd -> 'e -> 'e)
@@ -519,6 +530,7 @@ module UTF8 = struct
 	type elt = utf8_char;;
 	let sequence = utf8_sequence;;
 	let max_sequence = 6;;
+	let is_trailing = utf8_is_trailing;;
 	let decode = utf8_decode;;
 	let encode = utf8_encode;;
 	include String;;
@@ -562,6 +574,7 @@ module UTF16 = struct
 	type elt = utf16_char;;
 	let sequence = utf16_sequence;;
 	let max_sequence = 2;;
+	let is_trailing = utf16_is_trailing;;
 	let decode = utf16_decode;;
 	let encode = utf16_encode;;
 	include (struct include Bigarray.Array1 end: BA1_without_t);;
@@ -588,6 +601,7 @@ module UTF32 = struct
 	type elt = utf32_char;;
 	let sequence = utf32_sequence;;
 	let max_sequence = 1;;
+	let is_trailing = utf32_is_trailing;;
 	let decode = utf32_decode;;
 	let encode = utf32_encode;;
 	include (struct include Bigarray.Array1 end: BA1_without_t);;

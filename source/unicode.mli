@@ -15,6 +15,7 @@ type utf32_char = Uint32.t
 type utf32_string =
 	(int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 val utf8_sequence: ?illegal_sequence:exn -> utf8_char -> int
+val utf8_is_trailing: utf8_char -> bool
 val utf8_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf8_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
@@ -25,6 +26,7 @@ val utf8_lead: utf8_string -> int -> int
 val utf8_set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit
 	[@@ocaml.deprecated]
 val utf16_sequence: ?illegal_sequence:exn -> utf16_char -> int
+val utf16_is_trailing: utf16_char -> bool
 val utf16_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf16_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
@@ -35,6 +37,7 @@ val utf16_lead: utf16_string -> int -> int
 val utf16_set_code: ?illegal_sequence:exn -> utf16_string -> int ref ->
 	Uchar.t -> unit
 val utf32_sequence: ?illegal_sequence:exn -> utf32_char -> int
+val utf32_is_trailing: utf32_char -> bool
 val utf32_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf32_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
@@ -54,6 +57,7 @@ module UTF8: sig
 	type elt = utf8_char
 	val sequence: ?illegal_sequence:exn -> elt -> int
 	val max_sequence: int
+	val is_trailing: elt -> bool
 	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
 		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
@@ -116,6 +120,7 @@ module UTF16: sig
 	type elt = utf16_char
 	val sequence: ?illegal_sequence:exn -> elt -> int
 	val max_sequence: int
+	val is_trailing: elt -> bool
 	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
 		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
@@ -146,6 +151,7 @@ module UTF32: sig
 	type elt = utf32_char
 	val sequence: ?illegal_sequence:exn -> elt -> int
 	val max_sequence: int
+	val is_trailing: elt -> bool
 	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
 		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f

@@ -2,6 +2,7 @@ module type ES = sig
 	type elt
 	val sequence: ?illegal_sequence:exn -> elt -> int
 	val max_sequence: int
+	val is_trailing: elt -> bool
 	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
 		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
