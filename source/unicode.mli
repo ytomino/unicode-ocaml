@@ -21,8 +21,8 @@ val utf8_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf8_char) ->
 	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 val utf8_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf8_char -> 'b) ->
 	'a -> 'b -> Uchar.t -> 'b
-val utf8_get_code: ?illegal_sequence:exn -> utf8_string -> int ref -> Uchar.t
 val utf8_lead: utf8_string -> int -> int
+val utf8_get_code: ?illegal_sequence:exn -> utf8_string -> int ref -> Uchar.t
 val utf8_set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit
 	[@@ocaml.deprecated]
 val utf16_sequence: ?illegal_sequence:exn -> utf16_char -> int
@@ -32,8 +32,8 @@ val utf16_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf16_char) ->
 	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 val utf16_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf16_char -> 'b) ->
 	'a -> 'b -> Uchar.t -> 'b
-val utf16_get_code: ?illegal_sequence:exn -> utf16_string -> int ref -> Uchar.t
 val utf16_lead: utf16_string -> int -> int
+val utf16_get_code: ?illegal_sequence:exn -> utf16_string -> int ref -> Uchar.t
 val utf16_set_code: ?illegal_sequence:exn -> utf16_string -> int ref ->
 	Uchar.t -> unit
 val utf32_sequence: ?illegal_sequence:exn -> utf32_char -> int
@@ -43,8 +43,8 @@ val utf32_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf32_char) ->
 	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 val utf32_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf32_char -> 'b) ->
 	'a -> 'b -> Uchar.t -> 'b
-val utf32_get_code: ?illegal_sequence:exn -> utf32_string -> int ref -> Uchar.t
 val utf32_lead: utf32_string -> int -> int
+val utf32_get_code: ?illegal_sequence:exn -> utf32_string -> int ref -> Uchar.t
 val utf32_set_code: ?illegal_sequence:exn -> utf32_string -> int ref ->
 	Uchar.t -> unit
 val utf8_of_utf16: ?illegal_sequence:exn -> utf16_string -> utf8_string
@@ -83,8 +83,8 @@ module UTF8: sig
 	val blit: t -> int -> bytes -> int -> int -> unit [@@ocaml.deprecated]
 	external unsafe_blit: t -> int -> bytes -> int -> int -> unit =
 		"caml_blit_string" [@@ocaml.noalloc] [@@ocaml.deprecated]
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
+	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit
 		[@@ocaml.deprecated]
 	val of_utf16: ?illegal_sequence:exn -> utf16_string -> t
@@ -111,8 +111,8 @@ module UTF8_Bytes: sig
 	val blit: t -> int -> t -> int -> int -> unit
 	external unsafe_blit: t -> int -> t -> int -> int -> unit = "caml_blit_bytes"
 		[@@ocaml.noalloc]
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
+	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit
 	val of_array: elt array -> t
 end
@@ -140,8 +140,8 @@ module UTF16: sig
 	external sub: t -> int -> int -> t = "caml_ba_sub"
 	val fill: t -> int -> int -> elt -> unit
 	val blit: t -> int -> t -> int -> int -> unit
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
+	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val set_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t -> unit
 	val of_utf8: ?illegal_sequence:exn -> utf8_string -> t
 	val of_utf32: ?illegal_sequence:exn -> utf32_string -> t
@@ -171,8 +171,8 @@ module UTF32: sig
 	external sub: t -> int -> int -> t = "caml_ba_sub"
 	val fill: t -> int -> int -> elt -> unit
 	val blit: t -> int -> t -> int -> int -> unit
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
+	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val set_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t -> unit
 	val of_utf8: ?illegal_sequence:exn -> utf8_string -> t
 	val of_utf16: ?illegal_sequence:exn -> utf16_string -> t

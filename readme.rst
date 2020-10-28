@@ -61,8 +61,8 @@ Functions
 ``utf_X_is_trailing`` detecting whether an element is trailing or not
 ``utf_X_decode``      decoding single code point
 ``utf_X_encode``      encoding single code point
-``utf_X_get_code``    decoding single code point from the string
 ``utf_X_lead``        getting index of the leading element from any index
+``utf_X_get_code``    decoding single code point from the string
 ``utf_X_set_code``    encoding single code point to the string
 ``utf_X_of_utf_X``    converting all elements of the string
 ===================== =========================================================

@@ -27,8 +27,8 @@ module type TS = sig
 	val sub: t -> int -> int -> t
 	val fill: mutable_t -> int -> int -> elt -> unit
 	val blit: t -> int -> mutable_t -> int -> int -> unit
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val lead: t -> int -> int
+	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
 	val set_code: ?illegal_sequence:exn -> mutable_t -> int ref -> Uchar.t ->
 		unit
 	val of_array: elt array -> t
