@@ -280,7 +280,8 @@ let utf16_add (dest: utf16_string) (index: int) (item: utf16_char) = (
 );;
 
 let utf16_sequence ?(illegal_sequence: exn option) (lead: utf16_char) = (
-	if lead >= 0 && lead <= 0xd7ff || lead >= 0xe000 && lead <= 0xffff then 1 else
+	let lead = lead land 0xffff in (* mask utf16_char to 16bit range *)
+	if lead <= 0xd7ff || lead >= 0xe000 then 1 else
 	if lead >= 0xd800 && lead <= 0xdbff then 2 else (
 		optional_raise illegal_sequence;
 		1
@@ -288,7 +289,7 @@ let utf16_sequence ?(illegal_sequence: exn option) (lead: utf16_char) = (
 );;
 
 let utf16_is_trailing (item: utf16_char) = (
-	item land lnot 0x03ff = 0xdc00
+	item land 0xfc00 = 0xdc00 (* mask utf16_char to 16bit range *)
 );;
 
 let utf16_decode ?(illegal_sequence: exn option)
@@ -297,8 +298,9 @@ let utf16_decode ?(illegal_sequence: exn option)
 	(cont: 'a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) =
 (
 	let lead = get_f d e in
+	let lead = lead land 0xffff in (* mask utf16_char to 16bit range *)
 	let e = inc_f d e in
-	if lead >= 0 && lead <= 0xd7ff || lead >= 0xe000 && lead <= 0xffff then (
+	if lead <= 0xd7ff || lead >= 0xe000 then (
 		cont a b c d e (Uchar.unsafe_of_int lead)
 	) else if lead >= 0xd800 && lead <= 0xdbff then (
 		let tail, e =
@@ -308,6 +310,7 @@ let utf16_decode ?(illegal_sequence: exn option)
 				0, e
 			) else (
 				let tail = get_f d e in
+				let tail = tail land 0xffff in (* mask utf16_char to 16bit range *)
 				if not (utf16_is_trailing tail) then (
 					(* leading, but trailing is illegal *)
 					optional_raise illegal_sequence;
