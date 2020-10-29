@@ -618,9 +618,7 @@ module UTF32 = struct
 	type t = utf32_string;;
 	external compare: t -> t -> int = "%compare";;
 	external length: t -> int = "%caml_ba_dim_1";;
-	let get (a: t) (x: int) = (
-		Uint32.of_int32 (get a x)
-	);;
+	let get = utf32_get;;
 	let unsafe_get (a: t) (x: int) = (
 		Uint32.of_int32 (unsafe_get a x)
 	);;
