@@ -61,7 +61,7 @@ let optional_raise (e: exn option) = (
 );;
 
 let check_surrogate_pair (illegal_sequence: exn option) (code: int) = (
-	if code >= 0xd800 && code <= 0xdfff then (
+	if code land lnot 0x07ff = 0xd800 then (
 		optional_raise illegal_sequence
 	)
 );;
@@ -279,10 +279,17 @@ let utf16_add (dest: utf16_string) (index: int) (item: utf16_char) = (
 	index + 1
 );;
 
+let utf16_is_leading_1 (item: utf16_char) = (
+	item land 0xf800 <> 0xd800 (* mask utf16_char to 16bit range *)
+);;
+
+let utf16_is_leading_2 (item: utf16_char) = (
+	item land 0xfc00 = 0xd800 (* mask utf16_char to 16bit range *)
+);;
+
 let utf16_sequence ?(illegal_sequence: exn option) (lead: utf16_char) = (
-	let lead = lead land 0xffff in (* mask utf16_char to 16bit range *)
-	if lead <= 0xd7ff || lead >= 0xe000 then 1 else
-	if lead >= 0xd800 && lead <= 0xdbff then 2 else (
+	if utf16_is_leading_1 lead then 1 else
+	if utf16_is_leading_2 lead then 2 else (
 		optional_raise illegal_sequence;
 		1
 	)
@@ -300,9 +307,9 @@ let utf16_decode ?(illegal_sequence: exn option)
 	let lead = get_f d e in
 	let lead = lead land 0xffff in (* mask utf16_char to 16bit range *)
 	let e = inc_f d e in
-	if lead <= 0xd7ff || lead >= 0xe000 then (
+	if utf16_is_leading_1 lead then (
 		cont a b c d e (Uchar.unsafe_of_int lead)
-	) else if lead >= 0xd800 && lead <= 0xdbff then (
+	) else if utf16_is_leading_2 lead then (
 		let tail, e =
 			if end_f d e then (
 				(* leading, but no trailing *)
@@ -357,7 +364,7 @@ let utf16_lead (source: utf16_string) (index: int) = (
 	if index <= 0 || not (utf16_is_trailing c) then index else
 	let n = index - 1 in
 	let p = Bigarray.Array1.unsafe_get source n in
-	if p < 0xd800 || p > 0xdbff then index else
+	if not (utf16_is_leading_2 p) then index else
 	n
 );;
 
