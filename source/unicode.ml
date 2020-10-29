@@ -146,6 +146,7 @@ let utf8_sequence ?(illegal_sequence: exn option) (lead: utf8_char) = (
 	if lead land 0b11111000 = 0b11110000 then 4 else
 	if lead land 0b11111100 = 0b11111000 then 5 else
 	if lead land 0b11111110 = 0b11111100 then 6 else (
+		(* illegal *)
 		optional_raise illegal_sequence;
 		1
 	)
@@ -162,6 +163,7 @@ let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 	let finish illegal_sequence a b c d e cont length code = (
 			check_surrogate_pair illegal_sequence code;
 			if utf8_storing_length code <> length then (
+				(* overlong *)
 				optional_raise illegal_sequence
 			);
 			cont a b c d e (Uchar.unsafe_of_int code)
@@ -170,22 +172,22 @@ let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 		code =
 	(
 		if offset <= 0 then finish illegal_sequence a b c d e cont length code else (
-			if end_f d e then (
-				(* no trailing *)
-				optional_raise illegal_sequence;
-				finish illegal_sequence a b c d e cont length (code lsl offset)
-			) else (
+			if not (end_f d e) then (
 				let tail = get_f d e in
-				if not (utf8_is_trailing tail) then (
-					(* trailing is illegal *)
-					optional_raise illegal_sequence;
-					finish illegal_sequence a b c d e cont length (code lsl offset)
-				) else (
+				if utf8_is_trailing tail then (
 					let tail = int_of_char tail in
 					let e = inc_f d e in
 					tails illegal_sequence get_f inc_f end_f a b c d e cont length (offset - 6)
 						(code lsl 6 lor (tail land 0b00111111))
+				) else (
+					(* trailing is illegal *)
+					optional_raise illegal_sequence;
+					finish illegal_sequence a b c d e cont length (code lsl offset)
 				)
+			) else (
+				(* no trailing *)
+				optional_raise illegal_sequence;
+				finish illegal_sequence a b c d e cont length (code lsl offset)
 			)
 		)
 	) in
@@ -209,6 +211,7 @@ let utf8_decode ?(illegal_sequence: exn option) (get_f: 'd -> 'e -> utf8_char)
 		tails illegal_sequence get_f inc_f end_f a b c d e cont 6 30
 			(lead land 0b00000001)
 	) else (
+		(* illegal *)
 		optional_raise illegal_sequence;
 		let fake = lead + 0x7fffff00 in
 			(* out of meaning code points, by way of precaution *)
@@ -229,11 +232,11 @@ let utf8_encode ?(illegal_sequence: exn option)
 	) in
 	let code = Uchar.to_int code in
 	let code =
-		if code land lnot 0x7fffffff <> 0 then (
+		if code land lnot 0x7fffffff = 0 then code else (
+			(* unmappable *)
 			optional_raise illegal_sequence; (* only when Sys.word_size > 32 *)
 			0x7fffffff
-		) else
-		code
+		)
 	in
 	let length = utf8_storing_length code in
 	if length = 1 then f a b (char_of_int code) else (
@@ -250,8 +253,8 @@ let utf8_encode ?(illegal_sequence: exn option)
 let utf8_lead (source: utf8_string) (index: int) = (
 	let rec lead source index j c = (
 		if j <= 0 || j + 5 <= index || not (utf8_is_trailing c) then (
-			if j + utf8_sequence (c) <= index then index else
-			j
+			if j + utf8_sequence (c) > index then j else
+			index (* illegal *)
 		) else
 		let n = j - 1 in
 		lead source index n (String.unsafe_get source n)
@@ -290,6 +293,7 @@ let utf16_is_leading_2 (item: utf16_char) = (
 let utf16_sequence ?(illegal_sequence: exn option) (lead: utf16_char) = (
 	if utf16_is_leading_1 lead then 1 else
 	if utf16_is_leading_2 lead then 2 else (
+		(* illegal *)
 		optional_raise illegal_sequence;
 		1
 	)
@@ -311,21 +315,21 @@ let utf16_decode ?(illegal_sequence: exn option)
 		cont a b c d e (Uchar.unsafe_of_int lead)
 	) else if utf16_is_leading_2 lead then (
 		let tail, e =
-			if end_f d e then (
-				(* leading, but no trailing *)
-				optional_raise illegal_sequence;
-				0, e
-			) else (
+			if not (end_f d e) then (
 				let tail = get_f d e in
 				let tail = tail land 0xffff in (* mask utf16_char to 16bit range *)
-				if not (utf16_is_trailing tail) then (
+				if utf16_is_trailing tail then (
+					let e = inc_f d e in
+					tail, e
+				) else (
 					(* leading, but trailing is illegal *)
 					optional_raise illegal_sequence;
 					0, e
-				) else (
-					let e = inc_f d e in
-					tail, e
 				)
+			) else (
+				(* leading, but no trailing *)
+				optional_raise illegal_sequence;
+				0, e
 			)
 		in
 		let result = ((lead land (1 lsl 10 - 1)) lsl 10 lor (tail land (1 lsl 10 - 1)))
@@ -347,11 +351,10 @@ let utf16_encode ?(illegal_sequence: exn option)
 	if code land lnot 0xffff = 0 then f a b code else (
 		let c2 =
 			let c2 = code - 0x10000 in
-			if code land lnot 0xfffff <> 0 then (
+			if code land lnot 0xfffff = 0 then c2 else (
+				(* unmappable *)
 				optional_raise illegal_sequence;
 				0xfffff
-			) else (
-				c2
 			)
 		in
 		let b = f a b (0xd800 lor ((c2 lsr 10) land (1 lsl 10 - 1))) in
@@ -364,8 +367,8 @@ let utf16_lead (source: utf16_string) (index: int) = (
 	if index <= 0 || not (utf16_is_trailing c) then index else
 	let n = index - 1 in
 	let p = Bigarray.Array1.unsafe_get source n in
-	if not (utf16_is_leading_2 p) then index else
-	n
+	if utf16_is_leading_2 p then n else
+	index (* illegal *)
 );;
 
 let utf16_get_code ?(illegal_sequence: exn option) (source: utf16_string)
