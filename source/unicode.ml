@@ -627,6 +627,7 @@ module UTF32 = struct
 			if r <> 0 then r else
 			compare x y min_length (i + 1)
 		) in
+		let min (x: int) (y: int) = if x <= y then x else y in (* specialized *)
 		compare x y (min (dim x) (dim y)) 0
 	);;
 	external length: t -> int = "%caml_ba_dim_1";;
