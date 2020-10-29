@@ -158,7 +158,7 @@ module UTF32: sig
 	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
 		Uchar.t -> 'b
 	type t = utf32_string
-	external compare: t -> t -> int = "%compare"
+	val compare: t -> t -> int
 	external length: t -> int = "%caml_ba_dim_1"
 	val get: t -> int -> elt
 	val unsafe_get: t -> int -> elt

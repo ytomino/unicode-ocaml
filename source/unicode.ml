@@ -391,6 +391,10 @@ let utf32_get (source: utf32_string) (index: int) = (
 	Uint32.of_int32 (Bigarray.Array1.get source index)
 );;
 
+let utf32_unsafe_get (source: utf32_string) (index: int) = (
+	Uint32.of_int32 (Bigarray.Array1.unsafe_get source index)
+);;
+
 let utf32_add (dest: utf32_string) (index: int) (item: utf32_char) = (
 	Bigarray.Array1.set dest index (Uint32.to_int32 item);
 	index + 1
@@ -616,12 +620,18 @@ module UTF32 = struct
 	let encode = utf32_encode;;
 	include (struct include Bigarray.Array1 end: BA1_without_t);;
 	type t = utf32_string;;
-	external compare: t -> t -> int = "%compare";;
+	let compare (x: t) (y: t) = (
+		let rec compare x y min_length i = (
+			if i >= min_length then Int.compare (dim x) (dim y) else
+			let r = Uint32.compare (utf32_unsafe_get x i) (utf32_unsafe_get y i) in
+			if r <> 0 then r else
+			compare x y min_length (i + 1)
+		) in
+		compare x y (min (dim x) (dim y)) 0
+	);;
 	external length: t -> int = "%caml_ba_dim_1";;
 	let get = utf32_get;;
-	let unsafe_get (a: t) (x: int) = (
-		Uint32.of_int32 (unsafe_get a x)
-	);;
+	let unsafe_get = utf32_unsafe_get;;
 	let set (a: t) (x: int) (v: elt) = (
 		set a x (Uint32.to_int32 v)
 	);;
