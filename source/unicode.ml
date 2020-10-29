@@ -58,13 +58,13 @@ let optional_raise (e: exn option) = (
 	match e with
 	| Some e -> raise e
 	| None -> ()
-);;
+) [@@ocaml.inline never];;
 
 let check_surrogate_pair (illegal_sequence: exn option) (code: int) = (
 	if code land lnot 0x07ff = 0xd800 then (
 		optional_raise illegal_sequence
 	)
-);;
+) [@@ocaml.inline always];;
 
 module type Uint32_S = sig
 	type t [@@ocaml.immediate64]
@@ -385,7 +385,7 @@ let check_range (illegal_sequence: exn option) (item: utf32_char) = (
 	if not (Uint32.is_uint31 item) then (
 		optional_raise illegal_sequence
 	)
-);;
+) [@@ocaml.inline always];;
 
 let utf32_get (source: utf32_string) (index: int) = (
 	Uint32.of_int32 (Bigarray.Array1.get source index)
