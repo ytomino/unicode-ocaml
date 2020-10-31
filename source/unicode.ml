@@ -122,6 +122,8 @@ type utf32_char = Uint32.t;;
 type utf32_string =
 	(int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t;;
 
+let min (x: int) (y: int) = if x <= y then x else y;; (* specialized *)
+
 let utf8_get: utf8_string -> int -> utf8_char = String.get;;
 
 let utf8_add (dest: bytes) (index: int) (item: utf8_char) = (
@@ -262,6 +264,24 @@ let utf8_lead (source: utf8_string) (index: int) = (
 	lead source index index (String.get source index)
 );;
 
+let utf8_rear (source: utf8_string) (index: int) = (
+	let rec rear source j e = (
+		let n = j + 1 in
+		if n >= e || not (utf8_is_trailing (String.unsafe_get source n)) then j else
+		rear source n e
+	) in
+	let rec lead source index j c = (
+		if not (utf8_is_trailing c) || j <= 0 || j + 5 <= index then (
+			let e = j + utf8_sequence (c) in
+			if e > index then rear source index (min e (String.length source)) else
+			index (* illegal *)
+		) else
+		let n = j - 1 in
+		lead source index n (String.unsafe_get source n)
+	) in
+	lead source index index (String.get source index)
+);;
+
 let utf8_get_code ?(illegal_sequence: exn option) (source: utf8_string)
 	(index: int ref) =
 (
@@ -371,6 +391,16 @@ let utf16_lead (source: utf16_string) (index: int) = (
 	index (* illegal *)
 );;
 
+let utf16_rear (source: utf16_string) (index: int) = (
+	let c = Bigarray.Array1.get source index in
+	if not (utf16_is_leading_2 c) then index else
+	let n = index + 1 in
+	if n >= Bigarray.Array1.dim source then index else
+	let t = Bigarray.Array1.unsafe_get source n in
+	if utf16_is_trailing t then n else
+	index (* illegal *)
+);;
+
 let utf16_get_code ?(illegal_sequence: exn option) (source: utf16_string)
 	(index: int ref) =
 (
@@ -435,6 +465,8 @@ let utf32_encode ?(illegal_sequence: exn option)
 );;
 
 let utf32_lead (_: utf32_string) (index: int) = index;;
+
+let utf32_rear (_: utf32_string) (index: int) = index;;
 
 let utf32_get_code ?(illegal_sequence: exn option) (source: utf32_string)
 	(index: int ref) =
@@ -554,6 +586,7 @@ module UTF8 = struct
 	let empty = "";;
 	let append = ( ^ );;
 	let lead = utf8_lead;;
+	let rear = utf8_rear;;
 	let get_code = utf8_get_code;;
 	let set_code = utf8_set_code;;
 	let of_utf16 = utf8_of_utf16;;
@@ -576,6 +609,9 @@ module UTF8_Bytes = struct
 	);;
 	let lead (source: t) (index: int) = (
 		utf8_lead (unsafe_to_string source) index
+	);;
+	let rear (source: t) (index: int) = (
+		utf8_rear (unsafe_to_string source) index
 	);;
 	let get_code ?(illegal_sequence: exn option) (source: t) (index: int ref) = (
 		utf8_get_code ?illegal_sequence (unsafe_to_string source) index
@@ -606,6 +642,7 @@ module UTF16 = struct
 	let fill = ba_fill;;
 	let blit = ba_blit;;
 	let lead = utf16_lead;;
+	let rear = utf16_rear;;
 	let get_code = utf16_get_code;;
 	let set_code = utf16_set_code;;
 	let of_utf8 = utf16_of_utf8;;
@@ -630,7 +667,6 @@ module UTF32 = struct
 			if r <> 0 then r else
 			compare x y min_length (i + 1)
 		) in
-		let min (x: int) (y: int) = if x <= y then x else y in (* specialized *)
 		compare x y (min (dim x) (dim y)) 0
 	);;
 	external length: t -> int = "%caml_ba_dim_1";;
@@ -651,6 +687,7 @@ module UTF32 = struct
 	);;
 	let blit = ba_blit;;
 	let lead = utf32_lead;;
+	let rear = utf32_rear;;
 	let get_code = utf32_get_code;;
 	let set_code = utf32_set_code;;
 	let of_utf8 = utf32_of_utf8;;

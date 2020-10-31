@@ -62,6 +62,7 @@ Functions
 ``utfXX_decode``      decoding single code point
 ``utfXX_encode``      encoding single code point
 ``utfXX_lead``        the first index of the contained code point from an index
+``utfXX_rear``        the last index of the contained code point from an index
 ``utfXX_get_code``    decoding single code point from a string
 ``utfXX_set_code``    encoding single code point into a string
 ``utfXX_of_utfXX``    new string converted from a string

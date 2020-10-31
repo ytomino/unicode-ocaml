@@ -18,35 +18,68 @@ assert (Unicode.utf16_of_utf32 ~illegal_sequence:exn data32 = data16);;
 assert (Unicode.utf32_of_utf16 data16 = data32);;
 assert (Unicode.utf32_of_utf16 ~illegal_sequence:exn data16 = data32);;
 
-(* lead *)
+(* lead/rear *)
 
-assert (Unicode.utf8_lead data8 6 = 6);;
-assert (Unicode.utf8_lead data8 5 = 3);;
-assert (Unicode.utf8_lead data8 4 = 3);;
-assert (Unicode.utf8_lead data8 3 = 3);;
-assert (Unicode.utf8_lead data8 2 = 0);;
-
-assert (Unicode.utf8_lead "\x80" 0 = 0);;
-assert (Unicode.utf8_lead "\xc0" 0 = 0);;
-assert (Unicode.utf8_lead "\xc0\x80\x80" 2 = 2);;
-assert (Unicode.utf8_lead "#\xfc\x80\x80\x80\x80\x80" 6 = 1);;
-assert (Unicode.utf8_lead "#\xfc\x80\x80\x80\x80\x80\x80" 7 = 7);;
-
+let rec iter_check length lead rear i j source indexes = (
+	let source_length = length source in
+	if i < source_length then (
+		assert (lead source i = indexes.(j));
+		let nj = j + 1 in
+		let next = if nj < Array.length indexes then indexes.(nj) else source_length in
+		let expected_rear = next - 1 in
+		assert (rear source i = expected_rear);
+		let ni = i + 1 in
+		iter_check length lead rear ni (if ni = next then nj else j) source indexes
+	)
+) in
+let iter_check_utf8 =
+	let open Unicode.UTF8 in iter_check length lead rear 0 0
+in
+let iter_check_utf16 =
+	let open Unicode.UTF16 in iter_check length lead rear 0 0
+in
+let iter_check_utf32 =
+	let open Unicode.UTF32 in iter_check length lead rear 0 0
+in
+iter_check_utf8 data8 [| 0; 3; 6; 9; 12; 15 |];
+iter_check_utf16 data16 [| 0; 1; 2; 3; 4; 5 |];
+iter_check_utf32 data32 [| 0; 1; 2; 3; 4; 5 |];
+iter_check_utf8 "#" [| 0 |];
+iter_check_utf8 "\x80" [| 0 |];
+iter_check_utf8 "\xc0" [| 0 |];
+iter_check_utf8 "##" [| 0; 1 |];
+iter_check_utf8 "\x80#" [| 0; 1 |];
+iter_check_utf8 "\xc0#" [| 0; 1 |];
+iter_check_utf8 "#\x80" [| 0; 1 |];
+iter_check_utf8 "#\xc0" [| 0; 1 |];
+iter_check_utf8 "\x80\x80" [| 0; 1 |];
+iter_check_utf8 "\xc0\xc0" [| 0; 1 |];
+iter_check_utf8 "\xc0\x80\x80" [| 0; 2 |];
+iter_check_utf8 "\xc0\x80\x80\x80" [| 0; 2; 3 |];
+iter_check_utf8 "\xc0\x80\x80\xc0" [| 0; 2; 3 |];
+iter_check_utf8 "\xc0\x80\xc0\x80" [| 0; 2 |];
+iter_check_utf8 "\xc0\x80\xc0\xc0" [| 0; 2; 3 |];
+iter_check_utf8 "#\xfc\x80\x80\x80\x80\x80" [| 0; 1 |];
+iter_check_utf8 "\xfc\x80\x80\x80\x80\x80#" [| 0; 6 |];
+iter_check_utf8 "\xfc\x80\x80\x80\x80\x80\x80" [| 0; 6; 7 |];
 let pair_data16 = Unicode.utf16_of_utf32
 	(Unicode.UTF32.of_array
-		(Array.map Unicode.Uint32.of_int32 [| 0x10000l; 0x10001l; 0x10002l |]));;
-assert (Unicode.utf16_lead pair_data16 5 = 4);;
-assert (Unicode.utf16_lead pair_data16 4 = 4);;
-assert (Unicode.utf16_lead pair_data16 3 = 2);;
-assert (Unicode.utf16_lead pair_data16 2 = 2);;
-assert (Unicode.utf16_lead pair_data16 1 = 0);;
-assert (Unicode.utf16_lead pair_data16 0 = 0);;
-
-assert (Unicode.utf16_lead (Unicode.UTF16.of_array [| 0xdc00 |]) 0 = 0);;
-assert (Unicode.utf16_lead (Unicode.UTF16.of_array [| 0xd800 |]) 0 = 0);;
-assert (
-	Unicode.utf16_lead (Unicode.UTF16.of_array [| 0xd800; 0xdc00; 0xdc00 |]) 2 = 2
-);;
+		(Array.map Unicode.Uint32.of_int32 [| 0x10000l; 0x10001l; 0x10002l |]))
+in
+iter_check_utf16 pair_data16 [| 0; 2; 4 |];
+let utf16_of_array = Unicode.UTF16.of_array in
+iter_check_utf16 (utf16_of_array [| 0xffff |]) [| 0 |];
+iter_check_utf16 (utf16_of_array [| 0xdc00 |]) [| 0 |];
+iter_check_utf16 (utf16_of_array [| 0xd800 |]) [| 0 |];
+iter_check_utf16 (utf16_of_array [| 0xffff; 0xffff |]) [| 0; 1 |];
+iter_check_utf16 (utf16_of_array [| 0xffff; 0xd800 |]) [| 0; 1 |];
+iter_check_utf16 (utf16_of_array [| 0xffff; 0xdc00 |]) [| 0; 1 |];
+iter_check_utf16 (utf16_of_array [| 0xd800; 0xffff |]) [| 0; 1 |];
+iter_check_utf16 (utf16_of_array [| 0xdc00; 0xffff |]) [| 0; 1 |];
+iter_check_utf16 (utf16_of_array [| 0xd800; 0xd800 |]) [| 0; 1 |];
+iter_check_utf16 (utf16_of_array [| 0xdc00; 0xdc00 |]) [| 0; 1 |];
+iter_check_utf16 (utf16_of_array [| 0xdc00; 0xd800; 0xdc00 |]) [| 0; 1 |];
+iter_check_utf16 (utf16_of_array [| 0xd800; 0xdc00; 0xdc00 |]) [| 0; 2 |];;
 
 (* UTF-8 corners *)
 
