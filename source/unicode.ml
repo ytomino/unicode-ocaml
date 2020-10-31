@@ -252,7 +252,7 @@ let utf8_encode ?(illegal_sequence: exn option)
 
 let utf8_lead (source: utf8_string) (index: int) = (
 	let rec lead source index j c = (
-		if j <= 0 || j + 5 <= index || not (utf8_is_trailing c) then (
+		if not (utf8_is_trailing c) || j <= 0 || j + 5 <= index then (
 			if j + utf8_sequence (c) > index then j else
 			index (* illegal *)
 		) else
@@ -364,7 +364,7 @@ let utf16_encode ?(illegal_sequence: exn option)
 
 let utf16_lead (source: utf16_string) (index: int) = (
 	let c = Bigarray.Array1.get source index in
-	if index <= 0 || not (utf16_is_trailing c) then index else
+	if not (utf16_is_trailing c) || index <= 0 then index else
 	let n = index - 1 in
 	let p = Bigarray.Array1.unsafe_get source n in
 	if utf16_is_leading_2 p then n else
