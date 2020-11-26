@@ -371,7 +371,7 @@ let utf16_encode ?(illegal_sequence: exn option)
 	if code land lnot 0xffff = 0 then f a b code else (
 		let c2 =
 			let c2 = code - 0x10000 in
-			if code land lnot 0xfffff = 0 then c2 else (
+			if c2 land lnot 0xfffff = 0 then c2 else (
 				(* unmappable *)
 				optional_raise illegal_sequence;
 				0xfffff

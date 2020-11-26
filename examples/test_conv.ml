@@ -290,6 +290,63 @@ assert (
 		&& !i = 1
 );;
 
+(* encode U+10FFFF *)
+
+let last_uchar = Uchar.of_int 0x10ffff;;
+
+assert (
+	let r = Unicode.utf8_encode ~illegal_sequence:exn
+		(fun () b item -> Buffer.add_char b item; b) () (Buffer.create 4) last_uchar
+	in
+	Buffer.contents r = "\xf4\x8f\xbf\xbf"
+);;
+
+assert (
+	let r = Unicode.utf16_encode ~illegal_sequence:exn (fun () b item -> item :: b)
+		() [] last_uchar
+	in
+	List.rev r = [0xdbff; 0xdfff]
+);;
+
+assert (
+	let r = Unicode.utf32_encode ~illegal_sequence:exn (fun () b item -> item :: b)
+		() [] last_uchar
+	in
+	r = [Unicode.Uint32.of_int32 0x10ffffl]
+);;
+
+(* encode U+110000 *)
+
+let lastp1_uchar = Uchar.unsafe_of_int 0x110000;;
+
+assert (
+	let r = Unicode.utf8_encode ~illegal_sequence:exn
+		(fun () b item -> Buffer.add_char b item; b) () (Buffer.create 4) lastp1_uchar
+	in
+	Buffer.contents r = "\xf4\x90\x80\x80"
+);;
+
+assert (
+	try
+		let _: int list = Unicode.utf16_encode ~illegal_sequence:exn
+			(fun () b item -> item :: b) () [] lastp1_uchar
+		in
+		false
+	with Failure _ -> true
+);;
+
+assert (
+	let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] lastp1_uchar in
+	List.rev r = [0xdbff; 0xdfff]
+);;
+
+assert (
+	let r = Unicode.utf32_encode ~illegal_sequence:exn (fun () b item -> item :: b)
+		() [] lastp1_uchar
+	in
+	r = [Unicode.Uint32.of_int32 0x110000l]
+);;
+
 (* encode U+7FFFFFFF *)
 
 let max_uchar = Uchar.unsafe_of_int 0x7fffffff;;
