@@ -105,11 +105,24 @@ module Immediate_Uint32 = struct
 	let unsafe_get: t array -> int -> t = Array.unsafe_get;;
 end;;
 
-module Uint32 =
-	(val
-		if Sys.word_size <= 32 then (module Non_immediate_Uint32: Uint32_S) else
-		(module Immediate_Uint32: Uint32_S)
+module Uint32: Uint32_S = struct
+	module Make = struct
+		type t [@@immediate64];;
+	end;;
+	include Make;;
+	type 'a repr =
+		| Immediate: Immediate_Uint32.t repr
+		| Non_immediate: Non_immediate_Uint32.t repr;;
+	module type S = Uint32_S with type t := t;;
+	include (val
+		match
+			if Sys.word_size <= 32 then (Obj.magic Non_immediate: t repr) else
+			(Obj.magic Immediate: t repr)
+		with
+		| Immediate -> (module Immediate_Uint32: S)
+		| Non_immediate -> (module Non_immediate_Uint32: S)
 	);;
+end;;
 
 type utf8_char = char;;
 type utf8_string = string;;
