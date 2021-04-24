@@ -6,6 +6,12 @@ What's this?
 
 This library has simple purpose for converting between UTF-8/16/32.
 
+Prerequisites
+-------------
+
+OCaml >= 4.08
+ https://ocaml.org/
+
 How to make
 -----------
 
