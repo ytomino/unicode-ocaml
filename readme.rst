@@ -100,7 +100,7 @@ License
 
 **license of unicode-ocaml** ::
 
- Copyright 2008-2020 YT. All rights reserved.
+ Copyright 2008-2021 YT. All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
