@@ -68,6 +68,7 @@ let check_surrogate_pair (illegal_sequence: exn option) (code: int) = (
 
 module type Uint32_S = sig
 	type t [@@ocaml.immediate64]
+	val zero: t
 	val compare: t -> t -> int
 	val is_uint31: t -> bool
 	val of_int: int -> t
@@ -79,6 +80,7 @@ end;;
 
 module Non_immediate_Uint32 = struct
 	type t = int32;;
+	let zero = Int32.zero
 	let compare = Int32.unsigned_compare;;
 	let is_uint31 x = x >= 0l;;
 	let of_int x = (
@@ -96,6 +98,7 @@ end;;
 
 module Immediate_Uint32 = struct
 	type t = int;;
+	let zero = Int.zero
 	let compare = Int.compare;;
 	let is_uint31 x = x land lnot 0x7fffffff = 0;;
 	let of_int x = x land (1 lsl 32 - 1);;

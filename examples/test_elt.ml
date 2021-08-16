@@ -61,7 +61,7 @@ done;;
 assert (UTF16.is_trailing (0xdc00 lor 0x10000));; (* masked *)
 assert (UTF16.is_trailing (0xdfff lor lnot 0xffff));; (* masked *)
 
-assert (not (UTF32.is_trailing (Uint32.of_int32 0l)));
+assert (not (UTF32.is_trailing Uint32.zero));
 assert (not (UTF32.is_trailing (Uint32.of_int32 0xffffffffl)));
 
 (* report *)
