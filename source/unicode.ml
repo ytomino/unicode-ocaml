@@ -615,14 +615,7 @@ end;;
 module UTF8_Bytes = struct
 	type elt = utf8_char;;
 	include Bytes;;
-	let append (x: t) (y: t) = (
-		let x_length = length x in
-		let y_length = length y in
-		let result = create (x_length + y_length) in
-		unsafe_blit x 0 result 0 x_length;
-		unsafe_blit y 0 result x_length y_length;
-		result
-	);;
+	let append = cat;;
 	let lead (source: t) (index: int) = (
 		utf8_lead (unsafe_to_string source) index
 	);;

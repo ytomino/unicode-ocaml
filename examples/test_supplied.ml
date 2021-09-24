@@ -57,15 +57,6 @@ let a = utf16_of_utf8 "ABC" in
 let b = UTF16.copy a in
 assert (a = b && a != b);;
 
-(* UTF8_Bytes.append *)
-
-let a = Bytes.of_string "ABC" in
-let b = Bytes.of_string "DEF" in
-assert (UTF8_Bytes.append a b = Bytes.of_string "ABCDEF");;
-let a = Bytes.of_string "AB" in
-let b = Bytes.of_string "CDEF" in
-assert (UTF8_Bytes.append a b = Bytes.of_string "ABCDEF");;
-
 (* UTF16/32.append *)
 
 let a = utf16_of_utf8 "ABC" in
