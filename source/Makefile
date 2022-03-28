@@ -36,6 +36,7 @@ CFLAGS=
 
 CCLIB=
 LDFLAGS=
+LDLIB=
 
 $(BUILDDIR)/unicode.cmo: $(BUILDDIR)/unicode.cmi
 $(BUILDDIR)/unicode.cmx: $(BUILDDIR)/unicode.cmi
@@ -97,7 +98,7 @@ $(BUILDDIR)/$(LIBNAME).cmxa: $(MLCMI) $(MLCMX) $(CSLL)
 
 ifneq ($(STUBLIBNAME),)
 $(BUILDDIR)/dll$(STUBLIBNAME)$(EXT_DLL): $(COBJ)
-	$(MKDLL) -o $@ $<
+	$(MKDLL) -o $@ $< $(LDLIB)
 
 ifneq ($(OCAMLOPT),)
 $(BUILDDIR)/lib$(STUBLIBNAME).a: $(COBJ)
