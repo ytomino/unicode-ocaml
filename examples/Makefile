@@ -18,6 +18,9 @@ OCAMLC=$(PROGRAMPREFIX)ocamlc
 OCAMLOPT=$(if $(OCAMLC),$(OCAMLC:c=opt),$(PROGRAMPREFIX)ocamlopt)
 RLWRAP?=
 
+OCAMLCFLAGS=
+OCAMLOPTFLAGS=$(OCAMLCFLAGS)
+
 BUILDSUFFIX=.noindex
 BUILDDIR=$(TARGET)$(BUILDSUFFIX)
 UNICODE_BUILDDIR=$(BUILDDIR)/unicode$(BUILDSUFFIX)
@@ -37,7 +40,7 @@ $(BUILDDIR)/%.byte.exe: %.ml $(BUILDDIR)/unicode.cma
 	$(OCAMLC) -o $@ -I $(BUILDDIR) bigarray.cma unicode.cma $(BUILDDIR)/$*.cmo
 
 $(BUILDDIR)/%.opt.exe: %.ml $(BUILDDIR)/unicode.cmxa
-	$(OCAMLOPT) -c -o $(BUILDDIR)/$*.cmx -I $(BUILDDIR) $(OCAMLCFLAGS) $<
+	$(OCAMLOPT) -c -o $(BUILDDIR)/$*.cmx -I $(BUILDDIR) $(OCAMLOPTFLAGS) $<
 	$(OCAMLOPT) -o $@ -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/$*.cmx
 
 $(BUILDDIR)/test_sig.%.exe: private override OCAMLCFLAGS+=-w -3
