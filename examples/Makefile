@@ -40,7 +40,7 @@ $(BUILDDIR)/%.opt.exe: %.ml $(BUILDDIR)/unicode.cmxa
 	$(OCAMLOPT) -c -o $(BUILDDIR)/$*.cmx -I $(BUILDDIR) $(OCAMLCFLAGS) $<
 	$(OCAMLOPT) -o $@ -I $(BUILDDIR) bigarray.cmxa unicode.cmxa $(BUILDDIR)/$*.cmx
 
-$(BUILDDIR)/test_sig.%.exe: OCAMLCFLAGS+=-w -3
+$(BUILDDIR)/test_sig.%.exe: private override OCAMLCFLAGS+=-w -3
 
 check: all $(TESTS)
 
