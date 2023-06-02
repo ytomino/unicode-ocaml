@@ -50,7 +50,7 @@ ifneq ($(OCAMLC),)
 	$<
 endif
 ifneq ($(OCAMLOPT),)
-	$(patsubst %.byte.exe,%.opt.exe,$<)
+	$(BUILDDIR)/$*.opt.exe
 endif
 
 interactive: $(BUILDDIR)/unicode.cma
