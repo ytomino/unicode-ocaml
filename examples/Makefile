@@ -56,7 +56,8 @@ endif
 interactive: $(BUILDDIR)/unicode.cma
 	$(RLWRAP) ocaml -I $(BUILDDIR) $(OCAMLCFLAGS) bigarray.cma unicode.cma
 
-$(BUILDDIR)/unicode.cma $(BUILDDIR)/unicode.cmxa&: \
+$(if $(OCAMLC),$(BUILDDIR)/unicode.cma) \
+$(if $(OCAMLOPT),$(BUILDDIR)/unicode.cmxa)&: \
 		$(wildcard ../source/unicode*)
 	$(MAKE) -C ../source install \
 		BUILDDIR=$(abspath $(UNICODE_BUILDDIR)) \
