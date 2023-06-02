@@ -58,7 +58,7 @@ interactive: $(BUILDDIR)/unicode.cma
 
 $(if $(OCAMLC),$(BUILDDIR)/unicode.cma) \
 $(if $(OCAMLOPT),$(BUILDDIR)/unicode.cmxa)&: \
-		$(wildcard ../source/unicode*)
+		../source/unicode*
 	$(MAKE) -C ../source install \
 		BUILDDIR=$(abspath $(UNICODE_BUILDDIR)) \
 		INSTALLDIR=$(abspath $(BUILDDIR))
