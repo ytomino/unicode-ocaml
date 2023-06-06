@@ -52,17 +52,19 @@ interactive: $(BUILDDIR)/unicode.cma
 $(and $(OCAMLC),$(BUILDDIR)/unicode.cma) \
 $(and $(OCAMLOPT),$(BUILDDIR)/unicode.cmxa)&: \
 		../source/unicode*
-	$(MAKE) -C ../source install \
+	$(MAKE) -C $(strip \
+		../source install \
 		BUILDDIR=$(abspath $(UNICODE_BUILDDIR)) \
-		INSTALLDIR=$(abspath $(BUILDDIR))
+		INSTALLDIR=$(abspath $(BUILDDIR)))
 
 $(BINLN):
 	ln -s $(BUILDDIR) $@
 
 clean:
 	-$(and $(BINLN),[ -h "$(BINLN)" ] && rm "$(BINLN)")
-	-$(MAKE) -C ../source clean uninstall \
+	-$(MAKE) $(strip \
+		-C ../source clean uninstall \
 		BUILDDIR=$(abspath $(UNICODE_BUILDDIR)) \
-		INSTALLDIR=$(abspath $(BUILDDIR))
+		INSTALLDIR=$(abspath $(BUILDDIR)))
 	-rm $(BUILDDIR)/*.exe $(BUILDDIR)/*.cm? $(BUILDDIR)/*.o
 	-rmdir $(BUILDDIR)
