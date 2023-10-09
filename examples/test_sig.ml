@@ -18,14 +18,9 @@ module type TS = sig
 	val length: t -> int
 	val get: t -> int -> elt
 	val unsafe_get: t -> int -> elt
-	val set: mutable_t -> int -> elt -> unit
-	val unsafe_set: mutable_t -> int -> elt -> unit
 	val empty: t
-	val create: int -> mutable_t
-	val copy: t -> t
 	val append: t -> t -> t
 	val sub: t -> int -> int -> t
-	val fill: mutable_t -> int -> int -> elt -> unit
 	val blit: t -> int -> mutable_t -> int -> int -> unit
 	val lead: t -> int -> int
 	val rear: t -> int -> int
@@ -35,19 +30,29 @@ module type TS = sig
 	val of_array: elt array -> t
 end;;
 
+module type MS = sig
+	type t
+	include TS with type t := t and type mutable_t := t
+	val set: t -> int -> elt -> unit
+	val unsafe_set: t -> int -> elt -> unit
+	val create: int -> t
+	val copy: t -> t
+	val fill: t -> int -> int -> elt -> unit
+end;; (* mutable version of TS *)
+
 open Unicode;;
 
 let (_: unit) =
 	let module Check: ES = UTF8 in
 	let module Check: TS with type mutable_t := bytes = UTF8 in ();;
 let (_: unit) =
-	let module Check: TS with type mutable_t := bytes = UTF8_Bytes in ();;
+	let module Check: MS = UTF8_Bytes in ();;
 let (_: unit) =
 	let module Check: ES = UTF16 in
-	let module Check: TS with type mutable_t := utf16_string = UTF16 in ();;
+	let module Check: MS = UTF16 in ();;
 let (_: unit) =
 	let module Check: ES = UTF32 in
-	let module Check: TS with type mutable_t := utf32_string = UTF32 in ();;
+	let module Check: MS = UTF32 in ();;
 
 (* report *)
 

@@ -80,18 +80,9 @@ module UTF8: sig
 	external length: t -> int = "%string_length"
 	external get: t -> int -> elt = "%string_safe_get"
 	external unsafe_get: t -> int -> elt = "%string_unsafe_get"
-	external set: bytes -> int -> elt -> unit = "%string_safe_set"
-		[@@ocaml.deprecated]
-	external unsafe_set: bytes -> int -> elt -> unit = "%string_unsafe_set"
-		[@@ocaml.deprecated]
 	val empty: t
-	external create: int -> bytes = "caml_create_string" [@@ocaml.deprecated]
-	val copy: t -> t [@@ocaml.deprecated]
 	val append: t -> t -> t
 	val sub: t -> int -> int -> t
-	val fill: bytes -> int -> int -> elt -> unit [@@ocaml.deprecated]
-	external unsafe_fill: bytes -> int -> int -> elt -> unit = "caml_fill_string"
-		[@@ocaml.noalloc] [@@ocaml.deprecated]
 	val blit: t -> int -> bytes -> int -> int -> unit [@@ocaml.deprecated]
 	external unsafe_blit: t -> int -> bytes -> int -> int -> unit =
 		"caml_blit_string" [@@ocaml.noalloc] [@@ocaml.deprecated]
