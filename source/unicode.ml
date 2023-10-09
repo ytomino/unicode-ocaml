@@ -109,19 +109,10 @@ module Immediate_Uint32 = struct
 end;;
 
 module Uint32: Uint32_S = struct
-	module Make = struct
-		type t [@@immediate64];;
-	end;;
-	include Make;;
-	type 'a repr =
-		| Immediate: Immediate_Uint32.t repr
-		| Non_immediate: Non_immediate_Uint32.t repr;;
+	include Sys.Immediate64.Make (Immediate_Uint32) (Non_immediate_Uint32);;
 	module type S = Uint32_S with type t := t;;
 	include (val
-		match
-			if Sys.word_size <= 32 then (Obj.magic Non_immediate: t repr) else
-			(Obj.magic Immediate: t repr)
-		with
+		match repr with
 		| Immediate -> (module Immediate_Uint32: S)
 		| Non_immediate -> (module Non_immediate_Uint32: S)
 	);;
