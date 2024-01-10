@@ -9,7 +9,7 @@ This library has simple purpose for converting between UTF-8/16/32.
 Prerequisites
 -------------
 
-OCaml >= 4.10
+OCaml >= 4.11
  https://ocaml.org/
 
 How to make
