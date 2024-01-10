@@ -630,7 +630,7 @@ module UTF16 = struct
 	let is_trailing = utf16_is_trailing;;
 	let decode = utf16_decode;;
 	let encode = utf16_encode;;
-	include (struct include Bigarray.Array1 end: BA1_without_t);;
+	include (Bigarray.Array1: BA1_without_t);;
 	type t = utf16_string;;
 	external compare: t -> t -> int = "%compare";;
 	external length: t -> int = "%caml_ba_dim_1";;
@@ -658,7 +658,7 @@ module UTF32 = struct
 	let is_trailing = utf32_is_trailing;;
 	let decode = utf32_decode;;
 	let encode = utf32_encode;;
-	include (struct include Bigarray.Array1 end: BA1_without_t);;
+	include (Bigarray.Array1: BA1_without_t);;
 	type t = utf32_string;;
 	let compare (x: t) (y: t) = (
 		let rec compare x y min_length i = (
