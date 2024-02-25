@@ -8,7 +8,9 @@ CSRC=
 LIBNAME=unicode
 STUBLIBNAME=
 
-OCAMLCFLAGS=-w +a
+DEBUG=
+
+OCAMLCFLAGS=$(and $(filter-out 0,$(DEBUG)),-g) -w +a
 OCAMLOPTFLAGS=$(OCAMLCFLAGS)
 CFLAGS=
 
