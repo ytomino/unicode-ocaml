@@ -21,7 +21,7 @@ type utf32_string =
 
 val utf8_sequence: ?illegal_sequence:exn -> utf8_char -> int
 val utf8_is_trailing: utf8_char -> bool
-val utf8_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf8_char) ->
+val utf8_decode3: ?illegal_sequence:exn -> ('d -> 'e -> utf8_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 val utf8_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf8_char -> 'b) ->
@@ -34,7 +34,7 @@ val utf8_set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit
 
 val utf16_sequence: ?illegal_sequence:exn -> utf16_char -> int
 val utf16_is_trailing: utf16_char -> bool
-val utf16_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf16_char) ->
+val utf16_decode3: ?illegal_sequence:exn -> ('d -> 'e -> utf16_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 val utf16_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf16_char -> 'b) ->
@@ -47,7 +47,7 @@ val utf16_set_code: ?illegal_sequence:exn -> utf16_string -> int ref ->
 
 val utf32_sequence: ?illegal_sequence:exn -> utf32_char -> int
 val utf32_is_trailing: utf32_char -> bool
-val utf32_decode: ?illegal_sequence:exn -> ('d -> 'e -> utf32_char) ->
+val utf32_decode3: ?illegal_sequence:exn -> ('d -> 'e -> utf32_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 val utf32_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf32_char -> 'b) ->
@@ -70,7 +70,7 @@ module UTF8: sig
 	val sequence: ?illegal_sequence:exn -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
-	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
+	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
 		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
@@ -128,7 +128,7 @@ module UTF16: sig
 	val sequence: ?illegal_sequence:exn -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
-	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
+	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
 		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
@@ -161,7 +161,7 @@ module UTF32: sig
 	val sequence: ?illegal_sequence:exn -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
-	val decode: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
+	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
 		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
 	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
