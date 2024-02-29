@@ -6,6 +6,8 @@ module type ES = sig
 	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
 		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
 		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
+	val decode: ?illegal_sequence:exn -> ('a -> 'b -> elt) -> ('a -> 'b -> 'b) ->
+		('a -> 'b -> bool) -> 'a -> 'b -> ('a -> 'b -> Uchar.t -> 'c) -> 'c
 	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
 		Uchar.t -> 'b
 end;;
