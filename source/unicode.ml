@@ -11,7 +11,7 @@ let ba_copy source = (
 	result
 );;
 
-let ba_append x y = (
+let ba_cat x y = (
 	let x_length = Bigarray.Array1.dim x in
 	let y_length = Bigarray.Array1.dim y in
 	let result = Bigarray.Array1.create (Bigarray.Array1.kind x) Bigarray.c_layout
@@ -615,7 +615,7 @@ module UTF8 = struct
 	let encode = utf8_encode;;
 	include String;;
 	let empty = "";;
-	let append = ( ^ );;
+	let cat = ( ^ );; (* String.cat is added since OCaml 4.13 *)
 	let lead = utf8_lead;;
 	let rear = utf8_rear;;
 	let get_code = utf8_get_code;;
@@ -630,7 +630,6 @@ end;;
 module UTF8_Bytes = struct
 	type elt = utf8_char;;
 	include Bytes;;
-	let append = cat;;
 	let lead (source: t) (index: int) = (
 		utf8_lead (unsafe_to_string source) index
 	);;
@@ -663,7 +662,7 @@ module UTF16 = struct
 		[| |];;
 	let create = Bigarray.Array1.create Bigarray.int16_unsigned Bigarray.c_layout;;
 	let copy = ba_copy;;
-	let append = ba_append;;
+	let cat = ba_cat;;
 	let fill = ba_fill;;
 	let blit = ba_blit;;
 	let lead = utf16_lead;;
@@ -707,7 +706,7 @@ module UTF32 = struct
 	let empty = Bigarray.Array1.of_array Bigarray.int32 Bigarray.c_layout [| |];;
 	let create = Bigarray.Array1.create Bigarray.int32 Bigarray.c_layout;;
 	let copy = ba_copy;;
-	let append = ba_append;;
+	let cat = ba_cat;;
 	let fill (a: t) (start: int) (len: int) (c: elt) = (
 		ba_fill a start len (Uint32.to_int32 c)
 	);;

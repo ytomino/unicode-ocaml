@@ -21,7 +21,7 @@ module type TS = sig
 	val get: t -> int -> elt
 	val unsafe_get: t -> int -> elt
 	val empty: t
-	val append: t -> t -> t
+	val cat: t -> t -> t
 	val sub: t -> int -> int -> t
 	val blit: t -> int -> mutable_t -> int -> int -> unit
 	val lead: t -> int -> int

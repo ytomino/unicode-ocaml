@@ -57,14 +57,14 @@ let a = utf16_of_utf8 "ABC" in
 let b = UTF16.copy a in
 assert (a = b && a != b);;
 
-(* UTF16/32.append *)
+(* UTF16/32.cat *)
 
 let a = utf16_of_utf8 "ABC" in
 let b = utf16_of_utf8 "DEF" in
-assert (UTF16.append a b = utf16_of_utf8 "ABCDEF");;
+assert (UTF16.cat a b = utf16_of_utf8 "ABCDEF");;
 let a = utf32_of_utf8 "AB" in
 let b = utf32_of_utf8 "CDEF" in
-assert (UTF32.append a b = utf32_of_utf8 "ABCDEF");;
+assert (UTF32.cat a b = utf32_of_utf8 "ABCDEF");;
 
 (* UTF16/32.fill *)
 

@@ -92,7 +92,7 @@ module UTF8: sig
 	external get: t -> int -> elt = "%string_safe_get"
 	external unsafe_get: t -> int -> elt = "%string_unsafe_get"
 	val empty: t
-	val append: t -> t -> t
+	val cat: t -> t -> t
 	val sub: t -> int -> int -> t
 	val blit: t -> int -> bytes -> int -> int -> unit [@@ocaml.deprecated]
 	external unsafe_blit: t -> int -> bytes -> int -> int -> unit =
@@ -119,7 +119,7 @@ module UTF8_Bytes: sig
 	val empty: t
 	external create: int -> t = "caml_create_bytes"
 	val copy: t -> t
-	val append: t -> t -> t
+	val cat: t -> t -> t
 	val sub: t -> int -> int -> t
 	val fill: t -> int -> int -> elt -> unit
 	external unsafe_fill: t -> int -> int -> elt -> unit = "caml_fill_bytes"
@@ -156,7 +156,7 @@ module UTF16: sig
 	val empty: t
 	val create: int -> t
 	val copy: t -> t
-	val append: t -> t -> t
+	val cat: t -> t -> t
 	external sub: t -> int -> int -> t = "caml_ba_sub"
 	val fill: t -> int -> int -> elt -> unit
 	val blit: t -> int -> t -> int -> int -> unit
@@ -191,7 +191,7 @@ module UTF32: sig
 	val empty: t
 	val create: int -> t
 	val copy: t -> t
-	val append: t -> t -> t
+	val cat: t -> t -> t
 	external sub: t -> int -> int -> t = "caml_ba_sub"
 	val fill: t -> int -> int -> elt -> unit
 	val blit: t -> int -> t -> int -> int -> unit
