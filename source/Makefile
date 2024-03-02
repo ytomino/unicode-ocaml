@@ -9,8 +9,9 @@ LIBNAME=unicode
 STUBLIBNAME=
 
 DEBUG=
+ASSERT=
 
-OCAMLCFLAGS=$(and $(filter-out 0,$(DEBUG)),-g) -w +a
+OCAMLCFLAGS=$(and $(filter-out 0,$(DEBUG)),-g) $(if $(ASSERT),,-noassert) -w +a
 OCAMLOPTFLAGS=$(OCAMLCFLAGS)
 CFLAGS=
 
