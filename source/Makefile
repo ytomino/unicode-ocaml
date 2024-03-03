@@ -16,7 +16,6 @@ OCAMLOPTFLAGS=$(OCAMLCFLAGS)
 CFLAGS=
 
 CCLIB=
-LDFLAGS=
 LDLIB=
 
 include Makefile.rules
