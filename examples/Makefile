@@ -15,6 +15,7 @@ OCAMLCFLAGS=$(and $(filter-out 0,$(DEBUG)),-g)
 OCAMLOPTFLAGS=$(OCAMLCFLAGS)
 OCAMLCFLAGS_EXE=$(and $(filter-out 0,$(DEBUG)),-g)
 OCAMLOPTFLAGS_EXE=$(OCAMLCFLAGS_EXE) $(addprefix -ccopt ,$(LDFLAGS))
+OCAML_INCLUDE_FLAGS=
 LDFLAGS?=
 
 BUILDSUFFIX=.noindex
@@ -35,16 +36,20 @@ all: \
 	$(BINLN)
 
 $(BUILDDIR)/%.byte.exe: %.ml $(BUILDDIR)/unicode.cma
-	$(OCAMLC) -c $(OCAMLCFLAGS) -o $(BUILDDIR)/$*.cmo -I $(BUILDDIR) $<
+	$(OCAMLC) $(strip \
+		-c $(OCAMLCFLAGS) \
+		-o $(BUILDDIR)/$*.cmo $(OCAML_INCLUDE_FLAGS) -I $(BUILDDIR) $<)
 	$(OCAMLC) $(strip \
 		$(OCAMLCFLAGS_EXE) \
-		-o $@ -I $(BUILDDIR) unicode.cma $(BUILDDIR)/$*.cmo)
+		-o $@ $(OCAML_INCLUDE_FLAGS) -I $(BUILDDIR) unicode.cma $(BUILDDIR)/$*.cmo)
 
 $(BUILDDIR)/%.opt.exe: %.ml $(BUILDDIR)/unicode.cmxa
-	$(OCAMLOPT) -c $(OCAMLOPTFLAGS) -o $(BUILDDIR)/$*.cmx -I $(BUILDDIR) $<
+	$(OCAMLOPT) $(strip \
+		-c $(OCAMLOPTFLAGS) \
+		-o $(BUILDDIR)/$*.cmx $(OCAML_INCLUDE_FLAGS) -I $(BUILDDIR) $<)
 	$(OCAMLOPT) $(strip \
 		$(OCAMLOPTFLAGS_EXE) \
-		-o $@ -I $(BUILDDIR) unicode.cmxa $(BUILDDIR)/$*.cmx)
+		-o $@ $(OCAML_INCLUDE_FLAGS) -I $(BUILDDIR) unicode.cmxa $(BUILDDIR)/$*.cmx)
 
 $(BUILDDIR)/test_sig.%.exe: private override OCAMLCFLAGS+=-w -3
 
@@ -57,7 +62,8 @@ $(TESTS): %: \
 	$(and $(OCAMLOPT),$(BUILDDIR)/$*.opt.exe)
 
 interactive: $(BUILDDIR)/unicode.cma
-	$(RLWRAP) ocaml $(OCAMLCFLAGS) -I $(BUILDDIR) unicode.cma
+	$(RLWRAP) ocaml $(strip \
+		$(OCAMLCFLAGS) $(OCAML_INCLUDE_FLAGS) -I $(BUILDDIR) unicode.cma)
 
 $(and $(OCAMLC),$(BUILDDIR)/unicode.cma) \
 $(and $(OCAMLOPT),$(BUILDDIR)/unicode.cmxa)&: \
