@@ -248,8 +248,13 @@ let utf8_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf8_char -> 'b) ->
 	fun ?illegal_sequence f a b code ->
 	(* without checking surrogate pair in set *)
 	let code = Uchar.to_int code in
+	let mask32 =
+		if Sys.word_size <= 32 then lnot 0
+		else 1 lsl 32 - 1 (* mask Uchar.t to 32bit range, consistency with UTF-32 *)
+	in
 	let code =
-		if code land lnot 0x7fffffff = 0 then code else (
+		if code land (lnot 0x7fffffff land mask32) = 0 then code land mask32
+		else (
 			(* unmappable *)
 			optional_raise illegal_sequence; (* only when Sys.word_size > 32 *)
 			0x7fffffff
@@ -387,10 +392,16 @@ let utf16_encode ?(illegal_sequence: exn option)
 (
 	(* without checking surrogate pair in set *)
 	let code = Uchar.to_int code in
-	if code land lnot 0xffff = 0 then f a b code else (
+	let mask32 =
+		if Sys.word_size <= 32 then lnot 0
+		else 1 lsl 32 - 1 (* mask Uchar.t to 32bit range, consistency with UTF-32 *)
+	in
+	if code land (lnot 0xffff land mask32) = 0 then f a b code
+	else (
 		let c2 =
 			let c2 = code - 0x10000 in
-			if c2 land lnot 0xfffff = 0 then c2 else (
+			if c2 land (lnot 0xfffff land mask32) = 0 then c2
+			else (
 				(* unmappable *)
 				optional_raise illegal_sequence;
 				0xfffff
