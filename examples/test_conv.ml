@@ -18,6 +18,11 @@ assert (Unicode.utf16_of_utf32 ~illegal_sequence:exn data32 = data16);;
 assert (Unicode.utf32_of_utf16 data16 = data32);;
 assert (Unicode.utf32_of_utf16 ~illegal_sequence:exn data16 = data32);;
 
+assert (
+	Unicode.utf16_of_utf8 ?illegal_sequence:None "\xff"
+	= Unicode.UTF16.of_array [| 0xdbff; 0xdfff |]
+);
+
 (* lead/rear *)
 
 let rec iter_check length lead rear i j source indexes = (

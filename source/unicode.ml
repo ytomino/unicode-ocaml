@@ -542,14 +542,18 @@ let utf16_of_utf8: ?illegal_sequence:exn -> utf8_string -> utf16_string =
 		let j = utf16_encode ?illegal_sequence utf16_add result j code in
 		decode illegal_sequence result j source i
 	) and decode illegal_sequence result j source i = (
-		if i >= String.length source then slice result 0 j else
+		if i >= String.length source then Bigarray.Array1.sub result 0 j else
 		utf8_decode3 ?illegal_sequence utf8_get succ_snd string_end illegal_sequence
 			result j source i encode
 	) in
 	fun ?illegal_sequence source ->
 	let source_length = String.length source in
-	let result = Bigarray.Array1.create Bigarray.int16_unsigned Bigarray.c_layout
-		source_length
+	let result =
+		(* Conversion from UTF-8 to UTF-16 never increases the number of elements.
+		   However, if an illegal sequence in UTF-8 is substituted to a character
+		   outside of BMP, the number of elements may be increased. *)
+		Bigarray.Array1.create Bigarray.int16_unsigned Bigarray.c_layout
+			(2 * source_length)
 	in
 	decode illegal_sequence result 0 source 0;;
 
