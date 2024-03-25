@@ -1,6 +1,7 @@
 module type ES = sig
 	type elt
-	val sequence: ?illegal_sequence:exn -> elt -> int
+	val sequence:
+		fail:([> `illegal_sequence | `surrogate_fragment of int] -> int) -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
 	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->

@@ -49,6 +49,8 @@ let ba_end source index = (
 
 let id3 _ _ x = x;;
 
+let one _ = 1;;
+
 let succ_snd _: int -> int = succ;;
 
 let finish_get_code _ _ (c: int ref) _ (e: int) (result: Uchar.t) = (
@@ -61,6 +63,10 @@ let optional_raise (e: exn option) = (
 	| Some e -> raise e
 	| None -> ()
 ) [@@ocaml.inline never];;
+
+let is_not_surrogate_fragment (code: int) = (
+	code land lnot 0x07ff <> 0xd800
+);;
 
 let check_surrogate_pair (illegal_sequence: exn option) (code: int) = (
 	if code land lnot 0x07ff = 0xd800 then (
@@ -149,18 +155,15 @@ let utf8_storing_length (code: int) = (
 	6
 );;
 
-let utf8_sequence ?(illegal_sequence: exn option) (lead: utf8_char) = (
+let utf8_sequence ~(fail: [> `illegal_sequence] -> int) (lead: utf8_char) = (
 	let lead = int_of_char lead in
 	if lead land 0b10000000 = 0 then 1 else
 	if lead land 0b11100000 = 0b11000000 then 2 else
 	if lead land 0b11110000 = 0b11100000 then 3 else
 	if lead land 0b11111000 = 0b11110000 then 4 else
 	if lead land 0b11111100 = 0b11111000 then 5 else
-	if lead land 0b11111110 = 0b11111100 then 6 else (
-		(* illegal *)
-		optional_raise illegal_sequence;
-		1
-	)
+	if lead land 0b11111110 = 0b11111100 then 6
+	else fail `illegal_sequence
 );;
 
 let utf8_is_trailing (item: utf8_char) = (
@@ -274,7 +277,7 @@ let utf8_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf8_char -> 'b) ->
 let utf8_lead: utf8_string -> int -> int =
 	let rec lead source index j c = (
 		if not (utf8_is_trailing c) || j <= 0 || j + 5 <= index then (
-			if j + utf8_sequence (c) > index then j else
+			if j + utf8_sequence ~fail:one c > index then j else
 			index (* illegal *)
 		) else
 		let n = j - 1 in
@@ -290,7 +293,7 @@ let utf8_rear: utf8_string -> int -> int =
 	) in
 	let rec lead source index j c = (
 		if not (utf8_is_trailing c) || j <= 0 || j + 5 <= index then (
-			let e = j + utf8_sequence (c) in
+			let e = j + utf8_sequence ~fail:one c in
 			if e > index then rear source index (min e (String.length source)) else
 			index (* illegal *)
 		) else
@@ -327,13 +330,12 @@ let utf16_is_leading_2 (item: utf16_char) = (
 	item land 0xfc00 = 0xd800 (* mask utf16_char to 16bit range *)
 );;
 
-let utf16_sequence ?(illegal_sequence: exn option) (lead: utf16_char) = (
+let utf16_sequence ~(fail: [> `surrogate_fragment of int] -> int)
+	(lead: utf16_char) =
+(
 	if utf16_is_leading_1 lead then 1 else
-	if utf16_is_leading_2 lead then 2 else (
-		(* illegal *)
-		optional_raise illegal_sequence;
-		1
-	)
+	if utf16_is_leading_2 lead then 2
+	else fail (`surrogate_fragment lead)
 );;
 
 let utf16_is_trailing (item: utf16_char) = (
@@ -463,11 +465,15 @@ let utf32_add (dest: utf32_string) (index: int) (item: utf32_char) = (
 	index + 1
 );;
 
-let utf32_sequence ?(illegal_sequence: exn option) (lead: utf32_char) = (
-	check_range illegal_sequence lead;
-	let lead = Uint32.to_int lead in
-	check_surrogate_pair illegal_sequence lead;
-	1
+let utf32_sequence
+	~(fail: [> `illegal_sequence | `surrogate_fragment of int] -> int)
+	(lead: utf32_char) =
+(
+	if Uint32.is_uint31 lead then (
+		let lead = Uint32.to_int lead in
+		if is_not_surrogate_fragment lead then 1
+		else fail (`surrogate_fragment lead)
+	) else fail `illegal_sequence
 );;
 
 let utf32_is_trailing (_: utf32_char) = false;;

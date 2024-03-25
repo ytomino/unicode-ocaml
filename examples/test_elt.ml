@@ -1,35 +1,28 @@
 open Unicode;;
 
-let exn = Failure "test_elt.ml";;
+let fail loc _ = failwith loc;;
 
 (* sequence *)
 
-let utf16_sequence_should_fail item = (
-	try
-		let _: int = utf16_sequence ~illegal_sequence:exn item in
-		false
-	with Failure _ -> true
-);;
-
 for i = 0 to 0xd7 do
-	assert (utf16_sequence ~illegal_sequence:exn (i * 0x100) = 1)
+	assert (utf16_sequence ~fail:(fail __LOC__) (i * 0x100) = 1)
 done;;
-assert (utf16_sequence ~illegal_sequence:exn 0xd7ff = 1);;
-assert (utf16_sequence ~illegal_sequence:exn 0xd800 = 2);;
-assert (utf16_sequence ~illegal_sequence:exn 0xd955 = 2);;
-assert (utf16_sequence ~illegal_sequence:exn 0xdaaa = 2);;
-assert (utf16_sequence ~illegal_sequence:exn 0xdbff = 2);;
-assert (utf16_sequence_should_fail 0xdc00);;
-assert (utf16_sequence_should_fail 0xdfff);;
-assert (utf16_sequence ~illegal_sequence:exn 0xe000 = 1);;
+assert (utf16_sequence ~fail:(fail __LOC__) 0xd7ff = 1);;
+assert (utf16_sequence ~fail:(fail __LOC__) 0xd800 = 2);;
+assert (utf16_sequence ~fail:(fail __LOC__) 0xd955 = 2);;
+assert (utf16_sequence ~fail:(fail __LOC__) 0xdaaa = 2);;
+assert (utf16_sequence ~fail:(fail __LOC__) 0xdbff = 2);;
+assert (utf16_sequence ~fail:(fun _ -> ~-1) 0xdc00 = ~-1);;
+assert (utf16_sequence ~fail:(fun _ -> ~-1) 0xdfff = ~-1);;
+assert (utf16_sequence ~fail:(fail __LOC__) 0xe000 = 1);;
 for i = 0xe0 to 0xff do
-	assert (utf16_sequence (i * 0x100 lor 0xff) = 1)
+	assert (utf16_sequence ~fail:(fail __LOC__) (i * 0x100 lor 0xff) = 1)
 done;;
 
-assert (utf16_sequence ~illegal_sequence:exn 0x10000 = 1);; (* masked *)
-assert (utf16_sequence ~illegal_sequence:exn 0x1d800 = 2);; (* masked *)
-assert (utf16_sequence_should_fail 0x1dc00);; (* masked *)
-assert (utf16_sequence ~illegal_sequence:exn (lnot 0xffff) = 1);; (* masked *)
+assert (utf16_sequence ~fail:(fail __LOC__) 0x10000 = 1);; (* masked *)
+assert (utf16_sequence ~fail:(fail __LOC__) 0x1d800 = 2);; (* masked *)
+assert (utf16_sequence ~fail:(fun _ -> ~-1) 0x1dc00 = ~-1);; (* masked *)
+assert (utf16_sequence ~fail:(fail __LOC__) (lnot 0xffff) = 1);; (* masked *)
 
 (* is_trailing *)
 

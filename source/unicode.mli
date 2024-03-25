@@ -19,7 +19,7 @@ type utf32_char = Uint32.t
 type utf32_string =
 	(int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 
-val utf8_sequence: ?illegal_sequence:exn -> utf8_char -> int
+val utf8_sequence: fail:([> `illegal_sequence] -> int) -> utf8_char -> int
 val utf8_is_trailing: utf8_char -> bool
 val utf8_decode3: ?illegal_sequence:exn -> ('d -> 'e -> utf8_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
@@ -35,7 +35,8 @@ val utf8_get_code: ?illegal_sequence:exn -> utf8_string -> int ref -> Uchar.t
 val utf8_set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit
 	[@@ocaml.deprecated]
 
-val utf16_sequence: ?illegal_sequence:exn -> utf16_char -> int
+val utf16_sequence: fail:([> `surrogate_fragment of int] -> int) ->
+	utf16_char -> int
 val utf16_is_trailing: utf16_char -> bool
 val utf16_decode3: ?illegal_sequence:exn -> ('d -> 'e -> utf16_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
@@ -51,7 +52,9 @@ val utf16_get_code: ?illegal_sequence:exn -> utf16_string -> int ref -> Uchar.t
 val utf16_set_code: ?illegal_sequence:exn -> utf16_string -> int ref ->
 	Uchar.t -> unit
 
-val utf32_sequence: ?illegal_sequence:exn -> utf32_char -> int
+val utf32_sequence:
+	fail:([> `illegal_sequence | `surrogate_fragment of int] -> int) ->
+	utf32_char -> int
 val utf32_is_trailing: utf32_char -> bool
 val utf32_decode3: ?illegal_sequence:exn -> ('d -> 'e -> utf32_char) ->
 	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
@@ -76,7 +79,7 @@ val utf32_of_utf16: ?illegal_sequence:exn -> utf16_string -> utf32_string
 
 module UTF8: sig
 	type elt = utf8_char
-	val sequence: ?illegal_sequence:exn -> elt -> int
+	val sequence: fail:([> `illegal_sequence] -> int) -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
 	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
@@ -136,7 +139,7 @@ end
 
 module UTF16: sig
 	type elt = utf16_char
-	val sequence: ?illegal_sequence:exn -> elt -> int
+	val sequence: fail:([> `surrogate_fragment of int] -> int) -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
 	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
@@ -171,7 +174,8 @@ end
 
 module UTF32: sig
 	type elt = utf32_char
-	val sequence: ?illegal_sequence:exn -> elt -> int
+	val sequence:
+		fail:([> `illegal_sequence | `surrogate_fragment of int] -> int) -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
 	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
