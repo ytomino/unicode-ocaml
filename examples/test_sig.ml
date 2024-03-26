@@ -26,8 +26,11 @@ module type ES = sig
 			] -> 'c
 		) ->
 		'a -> 'b -> 'c
-	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
-		Uchar.t -> 'b
+	val encode4: ('e -> 'f -> elt -> 'f) ->
+		fail:('a -> 'b -> 'c -> 'd -> 'e -> 'f -> [> `unexist] -> 'f) ->
+		'a -> 'b -> 'c -> 'd -> 'e -> 'f -> Uchar.t -> 'f
+	val encode: ('a -> 'b -> elt -> 'b) ->
+		fail:('a -> 'b -> [> `unexist ] -> 'b) -> 'a -> 'b -> Uchar.t -> 'b
 end;;
 
 module type TS = sig

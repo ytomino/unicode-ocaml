@@ -35,8 +35,11 @@ val utf8_decode3: ('d -> 'e -> utf8_char) -> ('d -> 'e -> 'e) ->
 val utf8_decode: ('a -> 'b -> utf8_char) -> ('a -> 'b -> 'b) ->
 	('a -> 'b -> bool) -> ('a -> 'b -> 'b -> Uchar.t -> 'c) ->
 	fail:('a -> 'b -> 'b -> [> utf8_decode_error] -> 'c) -> 'a -> 'b -> 'c
-val utf8_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf8_char -> 'b) ->
-	'a -> 'b -> Uchar.t -> 'b
+val utf8_encode4: ('e -> 'f -> utf8_char -> 'f) ->
+	fail:('a -> 'b -> 'c -> 'd -> 'e -> 'f -> [> `unexist] -> 'f) ->
+	'a -> 'b -> 'c -> 'd -> 'e -> 'f -> Uchar.t -> 'f
+val utf8_encode: ('a -> 'b -> utf8_char -> 'b) ->
+	fail:('a -> 'b -> [> `unexist] -> 'b) -> 'a -> 'b -> Uchar.t -> 'b
 val utf8_lead: utf8_string -> int -> int
 val utf8_rear: utf8_string -> int -> int
 val utf8_get_code: ?illegal_sequence:exn -> utf8_string -> int ref -> Uchar.t
@@ -55,8 +58,11 @@ val utf16_decode3: ('d -> 'e -> utf16_char) -> ('d -> 'e -> 'e) ->
 val utf16_decode: ('a -> 'b -> utf16_char) -> ('a -> 'b -> 'b) ->
 	('a -> 'b -> bool) -> ('a -> 'b -> 'b -> Uchar.t -> 'c) ->
 	fail:('a -> 'b -> 'b -> [> utf16_decode_error] -> 'c) -> 'a -> 'b -> 'c
-val utf16_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf16_char -> 'b) ->
-	'a -> 'b -> Uchar.t -> 'b
+val utf16_encode4: ('e -> 'f -> utf16_char -> 'f) ->
+	fail:('a -> 'b -> 'c -> 'd -> 'e -> 'f -> [> `unexist] -> 'f) ->
+	'a -> 'b -> 'c -> 'd -> 'e -> 'f -> Uchar.t -> 'f
+val utf16_encode: ('a -> 'b -> utf16_char -> 'b) ->
+	fail:('a -> 'b -> [> `unexist] -> 'b) -> 'a -> 'b -> Uchar.t -> 'b
 val utf16_lead: utf16_string -> int -> int
 val utf16_rear: utf16_string -> int -> int
 val utf16_get_code: ?illegal_sequence:exn -> utf16_string -> int ref -> Uchar.t
@@ -76,8 +82,11 @@ val utf32_decode3: ('d -> 'e -> utf32_char) -> ('d -> 'e -> 'e) ->
 val utf32_decode: ('a -> 'b -> utf32_char) -> ('a -> 'b -> 'b) ->
 	('a -> 'b -> bool) -> ('a -> 'b -> 'b -> Uchar.t -> 'c) ->
 	fail:('a -> 'b -> 'b -> [> utf32_decode_error] -> 'c) -> 'a -> 'b -> 'c
-val utf32_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf32_char -> 'b) ->
-	'a -> 'b -> Uchar.t -> 'b
+val utf32_encode4: ('e -> 'f -> utf32_char -> 'f) ->
+	fail:('a -> 'b -> 'c -> 'd -> 'e -> 'f -> [> ] -> 'f) ->
+	'a -> 'b -> 'c -> 'd -> 'e -> 'f -> Uchar.t -> 'f
+val utf32_encode: ('a -> 'b -> utf32_char -> 'b) ->
+	fail:('a -> 'b -> [> ] -> 'b) -> 'a -> 'b -> Uchar.t -> 'b
 val utf32_lead: utf32_string -> int -> int
 val utf32_rear: utf32_string -> int -> int
 val utf32_get_code: ?illegal_sequence:exn -> utf32_string -> int ref -> Uchar.t
@@ -103,8 +112,11 @@ module UTF8: sig
 	val decode: ('a -> 'b -> elt) -> ('a -> 'b -> 'b) -> ('a -> 'b -> bool) ->
 		('a -> 'b -> 'b -> Uchar.t -> 'c) ->
 		fail:('a -> 'b -> 'b -> [> utf8_decode_error] -> 'c) -> 'a -> 'b -> 'c
-	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
-		Uchar.t -> 'b
+	val encode4: ('e -> 'f -> elt -> 'f) ->
+		fail:('a -> 'b -> 'c -> 'd -> 'e -> 'f -> [> `unexist] -> 'f) ->
+		'a -> 'b -> 'c -> 'd -> 'e -> 'f -> Uchar.t -> 'f
+	val encode: ('a -> 'b -> elt -> 'b) -> fail:('a -> 'b -> [> `unexist] -> 'b) ->
+		'a -> 'b -> Uchar.t -> 'b
 	type t = utf8_string
 	val compare: t -> t -> int
 	external length: t -> int = "%string_length"
@@ -165,8 +177,11 @@ module UTF16: sig
 	val decode: ('a -> 'b -> elt) -> ('a -> 'b -> 'b) -> ('a -> 'b -> bool) ->
 		('a -> 'b -> 'b -> Uchar.t -> 'c) ->
 		fail:('a -> 'b -> 'b -> [> utf16_decode_error] -> 'c) -> 'a -> 'b -> 'c
-	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
-		Uchar.t -> 'b
+	val encode4: ('e -> 'f -> elt -> 'f) ->
+		fail:('a -> 'b -> 'c -> 'd -> 'e -> 'f -> [> `unexist] -> 'f) ->
+		'a -> 'b -> 'c -> 'd -> 'e -> 'f -> Uchar.t -> 'f
+	val encode: ('a -> 'b -> elt -> 'b) -> fail:('a -> 'b -> [> `unexist] -> 'b) ->
+		'a -> 'b -> Uchar.t -> 'b
 	type t = utf16_string
 	external compare: t -> t -> int = "%compare"
 	external length: t -> int = "%caml_ba_dim_1"
@@ -203,8 +218,11 @@ module UTF32: sig
 	val decode: ('a -> 'b -> elt) -> ('a -> 'b -> 'b) -> ('a -> 'b -> bool) ->
 		('a -> 'b -> 'b -> Uchar.t -> 'c) ->
 		fail:('a -> 'b -> 'b -> [> utf32_decode_error] -> 'c) -> 'a -> 'b -> 'c
-	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
-		Uchar.t -> 'b
+	val encode4: ('e -> 'f -> elt -> 'f) ->
+		fail:('a -> 'b -> 'c -> 'd -> 'e -> 'f -> [> ] -> 'f) ->
+		'a -> 'b -> 'c -> 'd -> 'e -> 'f -> Uchar.t -> 'f
+	val encode: ('a -> 'b -> elt -> 'b) ->
+		fail:('a -> 'b -> [> ] -> 'b) -> 'a -> 'b -> Uchar.t -> 'b
 	type t = utf32_string
 	val compare: t -> t -> int
 	external length: t -> int = "%caml_ba_dim_1"

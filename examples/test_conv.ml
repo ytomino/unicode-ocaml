@@ -1,4 +1,5 @@
 let exn = Failure "test_conv.ml";;
+let fail loc _ = failwith loc;;
 
 (* utfX_of_utfX *)
 
@@ -300,22 +301,25 @@ assert (
 let last_uchar = Uchar.of_int 0x10ffff;;
 
 assert (
-	let r = Unicode.utf8_encode ~illegal_sequence:exn
-		(fun () b item -> Buffer.add_char b item; b) () (Buffer.create 4) last_uchar
+	let r =
+		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
+			~fail:(fail __LOC__) () (Buffer.create 4) last_uchar
 	in
 	Buffer.contents r = "\xf4\x8f\xbf\xbf"
 );;
 
 assert (
-	let r = Unicode.utf16_encode ~illegal_sequence:exn (fun () b item -> item :: b)
-		() [] last_uchar
+	let r =
+		Unicode.utf16_encode (fun () b item -> item :: b) ~fail:(fail __LOC__) () []
+			last_uchar
 	in
 	List.rev r = [0xdbff; 0xdfff]
 );;
 
 assert (
-	let r = Unicode.utf32_encode ~illegal_sequence:exn (fun () b item -> item :: b)
-		() [] last_uchar
+	let r =
+		Unicode.utf32_encode (fun () b item -> item :: b) ~fail:(fail __LOC__) () []
+			last_uchar
 	in
 	r = [Unicode.Uint32.of_int32 0x10ffffl]
 );;
@@ -325,29 +329,23 @@ assert (
 let lastp1_uchar = Uchar.unsafe_of_int 0x110000;;
 
 assert (
-	let r = Unicode.utf8_encode ~illegal_sequence:exn
-		(fun () b item -> Buffer.add_char b item; b) () (Buffer.create 4) lastp1_uchar
+	let r =
+		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
+			~fail:(fail __LOC__) () (Buffer.create 4) lastp1_uchar
 	in
 	Buffer.contents r = "\xf4\x90\x80\x80"
 );;
 
 assert (
-	try
-		let _: int list = Unicode.utf16_encode ~illegal_sequence:exn
-			(fun () b item -> item :: b) () [] lastp1_uchar
-		in
-		false
-	with Failure _ -> true
+	Unicode.utf16_encode (fun () _ _ -> assert false)
+		~fail:(fun () _ error -> assert (error = `unexist); ~-1) () 0 lastp1_uchar
+	= ~-1
 );;
 
 assert (
-	let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] lastp1_uchar in
-	List.rev r = [0xdbff; 0xdfff]
-);;
-
-assert (
-	let r = Unicode.utf32_encode ~illegal_sequence:exn (fun () b item -> item :: b)
-		() [] lastp1_uchar
+	let r =
+		Unicode.utf32_encode (fun () b item -> item :: b) ~fail:(fail __LOC__) () []
+			lastp1_uchar
 	in
 	r = [Unicode.Uint32.of_int32 0x110000l]
 );;
@@ -357,19 +355,24 @@ assert (
 let max_uchar = Uchar.unsafe_of_int 0x7fffffff;;
 
 assert (
-	let r = Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
-		() (Buffer.create 6) max_uchar
+	let r =
+		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
+			~fail:(fail __LOC__) () (Buffer.create 6) max_uchar
 	in
 	Buffer.contents r = "\xfd\xbf\xbf\xbf\xbf\xbf"
 );;
 
 assert (
-	let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] max_uchar in
-	List.rev r = [0xdbff; 0xdfff]
+	Unicode.utf16_encode (fun () _ _ -> assert false)
+		~fail:(fun () _ error -> assert (error = `unexist); ~-1) () 0 max_uchar
+	= ~-1
 );;
 
 assert (
-	let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] max_uchar in
+	let r =
+		Unicode.utf32_encode (fun () b item -> item :: b) ~fail:(fail __LOC__) () []
+			max_uchar
+	in
 	r = [Unicode.Uint32.of_int32 0x7fffffffl]
 );;
 
@@ -377,49 +380,69 @@ if Sys.word_size > 32 then (
 	(* encode over 31bits, these values can only exist in UTF-32 *)
 	let min_illegal = Uchar.unsafe_of_int (1 lsl 31) in
 	assert (
-		let r = Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
-			() (Buffer.create 6) min_illegal
+		Unicode.utf8_encode (fun () _ _ -> assert false) ~fail:(fun () _ _ -> ~-1) () 0
+			min_illegal
+		= ~-1
+	);
+	assert (
+		Unicode.utf16_encode (fun () _ _ -> assert false) ~fail:(fun () _ _ -> ~-1) ()
+			0 min_illegal
+		= ~-1
+	);
+	assert (
+		let r =
+			Unicode.utf32_encode (fun () b item -> item :: b) ~fail:(fail __LOC__) () []
+				min_illegal
 		in
-		Buffer.contents r = "\xfd\xbf\xbf\xbf\xbf\xbf"
-	);
-	assert (
-		let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] min_illegal in
-		List.rev r = [0xdbff; 0xdfff]
-	);
-	assert (
-		let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] min_illegal in
 		r = [Unicode.Uint32.of_int32 0x80000000l]
 	);
 	let max_illegal = Uchar.unsafe_of_int (1 lsl 32 - 1) in
 	assert (
-		let r = Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
-			() (Buffer.create 6) max_illegal
+		Unicode.utf8_encode (fun () _ _ -> assert false) ~fail:(fun () _ _ -> ~-1) () 0
+			max_illegal
+		= ~-1
+	);
+	assert (
+		Unicode.utf16_encode (fun () _ _ -> assert false) ~fail:(fun () _ _ -> ~-1) ()
+			0 max_illegal
+		= ~-1
+	);
+	assert (
+		let r =
+			Unicode.utf32_encode (fun () b item -> item :: b) ~fail:(fail __LOC__) () []
+				max_illegal
 		in
-		Buffer.contents r = "\xfd\xbf\xbf\xbf\xbf\xbf"
-	);
-	assert (
-		let r = Unicode.utf16_encode (fun () b item -> item :: b) () [] max_illegal in
-		List.rev r = [0xdbff; 0xdfff]
-	);
-	assert (
-		let r = Unicode.utf32_encode (fun () b item -> item :: b) () [] max_illegal in
 		r = [Unicode.Uint32.of_int32 0xffffffffl]
 	);
 	(* encode over 32bits, the results are undefined *)
 	let over32 = Uchar.unsafe_of_int (1 lsl 32) in
 	ignore (
-		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b) ()
-			(Buffer.create 6) over32
+		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b)
+			~fail:(fail __LOC__) () (Buffer.create 6) over32
 	);
-	ignore (Unicode.utf16_encode (fun () b item -> item :: b) () [] over32);
-	ignore (Unicode.utf32_encode (fun () b item -> item :: b) () [] over32);
-	let negative = Uchar.unsafe_of_int ~-1 in
 	ignore (
-		Unicode.utf8_encode (fun () b item -> Buffer.add_char b item; b) ()
-			(Buffer.create 6) negative
+		Unicode.utf16_encode (fun () b item -> item :: b) ~fail:(fail __LOC__) () []
+			over32
 	);
-	ignore (Unicode.utf16_encode (fun () b item -> item :: b) () [] negative);
-	ignore (Unicode.utf32_encode (fun () b item -> item :: b) () [] negative)
+	ignore (
+		Unicode.utf32_encode (fun () b item -> item :: b) ~fail:(fail __LOC__) () []
+			over32
+	);
+	let negative = Uchar.unsafe_of_int ~-1 in
+	assert (
+		Unicode.utf8_encode (fun () _ _ -> assert false) ~fail:(fun () _ _ -> ~-1) () 0
+			negative
+		= ~-1
+	);
+	assert (
+		Unicode.utf16_encode (fun () _ _ -> assert false)
+			~fail:(fun () _ _ -> ~-1) () 0 negative
+		= ~-1
+	);
+	ignore (
+		Unicode.utf32_encode (fun () b item -> item :: b) ~fail:(fail __LOC__) () []
+			negative
+	)
 );;
 
 (* report *)
