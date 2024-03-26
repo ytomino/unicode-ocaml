@@ -4,11 +4,28 @@ module type ES = sig
 		fail:([> `illegal_sequence | `surrogate_fragment of int] -> int) -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
-	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
-		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
-		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
-	val decode: ?illegal_sequence:exn -> ('a -> 'b -> elt) -> ('a -> 'b -> 'b) ->
-		('a -> 'b -> bool) -> 'a -> 'b -> ('a -> 'b -> Uchar.t -> 'c) -> 'c
+	val decode3: ('d -> 'e -> elt) -> ('d -> 'e -> 'e) -> ('d -> 'e -> bool) ->
+		('a -> 'b -> 'c -> 'd -> 'e -> 'e -> Uchar.t -> 'f) ->
+		fail:('a -> 'b -> 'c -> 'd -> 'e -> 'e ->
+			[>
+				| `illegal_sequence
+				| `overly_long of [`some of Uchar.t | `surrogate_fragment of int]
+				| `surrogate_fragment of int
+				| `truncated
+			] -> 'f
+		) ->
+		'a -> 'b -> 'c -> 'd -> 'e -> 'f
+	val decode: ('a -> 'b -> elt) -> ('a -> 'b -> 'b) -> ('a -> 'b -> bool) ->
+		('a -> 'b -> 'b -> Uchar.t -> 'c) ->
+		fail:('a -> 'b -> 'b ->
+			[>
+				| `illegal_sequence
+				| `overly_long of [`some of Uchar.t | `surrogate_fragment of int]
+				| `surrogate_fragment of int
+				| `truncated
+			] -> 'c
+		) ->
+		'a -> 'b -> 'c
 	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
 		Uchar.t -> 'b
 end;;

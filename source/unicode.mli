@@ -19,14 +19,22 @@ type utf32_char = Uint32.t
 type utf32_string =
 	(int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 
+type utf8_decode_error = [
+	| `illegal_sequence
+	| `overly_long of [`some of Uchar.t | `surrogate_fragment of int]
+	| `surrogate_fragment of int
+	| `truncated
+]
+
 val utf8_sequence: fail:([> `illegal_sequence] -> int) -> utf8_char -> int
 val utf8_is_trailing: utf8_char -> bool
-val utf8_decode3: ?illegal_sequence:exn -> ('d -> 'e -> utf8_char) ->
-	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
-	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
-val utf8_decode: ?illegal_sequence:exn -> ('a -> 'b -> utf8_char) ->
-	('a -> 'b -> 'b) -> ('a -> 'b -> bool) -> 'a -> 'b ->
-	('a -> 'b -> Uchar.t -> 'c) -> 'c
+val utf8_decode3: ('d -> 'e -> utf8_char) -> ('d -> 'e -> 'e) ->
+	('d -> 'e -> bool) -> ('a -> 'b -> 'c -> 'd -> 'e -> 'e -> Uchar.t -> 'f) ->
+	fail:('a -> 'b -> 'c -> 'd -> 'e -> 'e -> [> utf8_decode_error] -> 'f) ->
+	'a -> 'b -> 'c -> 'd -> 'e -> 'f
+val utf8_decode: ('a -> 'b -> utf8_char) -> ('a -> 'b -> 'b) ->
+	('a -> 'b -> bool) -> ('a -> 'b -> 'b -> Uchar.t -> 'c) ->
+	fail:('a -> 'b -> 'b -> [> utf8_decode_error] -> 'c) -> 'a -> 'b -> 'c
 val utf8_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf8_char -> 'b) ->
 	'a -> 'b -> Uchar.t -> 'b
 val utf8_lead: utf8_string -> int -> int
@@ -35,15 +43,18 @@ val utf8_get_code: ?illegal_sequence:exn -> utf8_string -> int ref -> Uchar.t
 val utf8_set_code: ?illegal_sequence:exn -> bytes -> int ref -> Uchar.t -> unit
 	[@@ocaml.deprecated]
 
+type utf16_decode_error = [`surrogate_fragment of int]
+
 val utf16_sequence: fail:([> `surrogate_fragment of int] -> int) ->
 	utf16_char -> int
 val utf16_is_trailing: utf16_char -> bool
-val utf16_decode3: ?illegal_sequence:exn -> ('d -> 'e -> utf16_char) ->
-	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
-	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
-val utf16_decode: ?illegal_sequence:exn -> ('a -> 'b -> utf16_char) ->
-	('a -> 'b -> 'b) -> ('a -> 'b -> bool) -> 'a -> 'b ->
-	('a -> 'b -> Uchar.t -> 'c) -> 'c
+val utf16_decode3: ('d -> 'e -> utf16_char) -> ('d -> 'e -> 'e) ->
+	('d -> 'e -> bool) -> ('a -> 'b -> 'c -> 'd -> 'e -> 'e -> Uchar.t -> 'f) ->
+	fail:('a -> 'b -> 'c -> 'd -> 'e -> 'e -> [> utf16_decode_error] -> 'f) ->
+	'a -> 'b -> 'c -> 'd -> 'e -> 'f
+val utf16_decode: ('a -> 'b -> utf16_char) -> ('a -> 'b -> 'b) ->
+	('a -> 'b -> bool) -> ('a -> 'b -> 'b -> Uchar.t -> 'c) ->
+	fail:('a -> 'b -> 'b -> [> utf16_decode_error] -> 'c) -> 'a -> 'b -> 'c
 val utf16_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf16_char -> 'b) ->
 	'a -> 'b -> Uchar.t -> 'b
 val utf16_lead: utf16_string -> int -> int
@@ -52,16 +63,19 @@ val utf16_get_code: ?illegal_sequence:exn -> utf16_string -> int ref -> Uchar.t
 val utf16_set_code: ?illegal_sequence:exn -> utf16_string -> int ref ->
 	Uchar.t -> unit
 
+type utf32_decode_error = [`illegal_sequence | `surrogate_fragment of int]
+
 val utf32_sequence:
 	fail:([> `illegal_sequence | `surrogate_fragment of int] -> int) ->
 	utf32_char -> int
 val utf32_is_trailing: utf32_char -> bool
-val utf32_decode3: ?illegal_sequence:exn -> ('d -> 'e -> utf32_char) ->
-	('d -> 'e -> 'e) -> ('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
-	('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
-val utf32_decode: ?illegal_sequence:exn -> ('a -> 'b -> utf32_char) ->
-	('a -> 'b -> 'b) -> ('a -> 'b -> bool) -> 'a -> 'b ->
-	('a -> 'b -> Uchar.t -> 'c) -> 'c
+val utf32_decode3: ('d -> 'e -> utf32_char) -> ('d -> 'e -> 'e) ->
+	('d -> 'e -> bool) -> ('a -> 'b -> 'c -> 'd -> 'e -> 'e -> Uchar.t -> 'f) ->
+	fail:('a -> 'b -> 'c -> 'd -> 'e -> 'e -> [> utf32_decode_error] -> 'f) ->
+	'a -> 'b -> 'c -> 'd -> 'e -> 'f
+val utf32_decode: ('a -> 'b -> utf32_char) -> ('a -> 'b -> 'b) ->
+	('a -> 'b -> bool) -> ('a -> 'b -> 'b -> Uchar.t -> 'c) ->
+	fail:('a -> 'b -> 'b -> [> utf32_decode_error] -> 'c) -> 'a -> 'b -> 'c
 val utf32_encode: ?illegal_sequence:exn -> ('a -> 'b -> utf32_char -> 'b) ->
 	'a -> 'b -> Uchar.t -> 'b
 val utf32_lead: utf32_string -> int -> int
@@ -82,11 +96,13 @@ module UTF8: sig
 	val sequence: fail:([> `illegal_sequence] -> int) -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
-	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
-		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
-		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
-	val decode: ?illegal_sequence:exn -> ('a -> 'b -> elt) -> ('a -> 'b -> 'b) ->
-		('a -> 'b -> bool) -> 'a -> 'b -> ('a -> 'b -> Uchar.t -> 'c) -> 'c
+	val decode3: ('d -> 'e -> elt) -> ('d -> 'e -> 'e) -> ('d -> 'e -> bool) ->
+		('a -> 'b -> 'c -> 'd -> 'e -> 'e -> Uchar.t -> 'f) ->
+		fail:('a -> 'b -> 'c -> 'd -> 'e -> 'e -> [> utf8_decode_error] -> 'f) ->
+		'a -> 'b -> 'c -> 'd -> 'e -> 'f
+	val decode: ('a -> 'b -> elt) -> ('a -> 'b -> 'b) -> ('a -> 'b -> bool) ->
+		('a -> 'b -> 'b -> Uchar.t -> 'c) ->
+		fail:('a -> 'b -> 'b -> [> utf8_decode_error] -> 'c) -> 'a -> 'b -> 'c
 	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
 		Uchar.t -> 'b
 	type t = utf8_string
@@ -142,11 +158,13 @@ module UTF16: sig
 	val sequence: fail:([> `surrogate_fragment of int] -> int) -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
-	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
-		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
-		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
-	val decode: ?illegal_sequence:exn -> ('a -> 'b -> elt) -> ('a -> 'b -> 'b) ->
-		('a -> 'b -> bool) -> 'a -> 'b -> ('a -> 'b -> Uchar.t -> 'c) -> 'c
+	val decode3: ('d -> 'e -> elt) -> ('d -> 'e -> 'e) -> ('d -> 'e -> bool) ->
+		('a -> 'b -> 'c -> 'd -> 'e -> 'e -> Uchar.t -> 'f) ->
+		fail:('a -> 'b -> 'c -> 'd -> 'e -> 'e -> [> utf16_decode_error] -> 'f) ->
+		'a -> 'b -> 'c -> 'd -> 'e -> 'f
+	val decode: ('a -> 'b -> elt) -> ('a -> 'b -> 'b) -> ('a -> 'b -> bool) ->
+		('a -> 'b -> 'b -> Uchar.t -> 'c) ->
+		fail:('a -> 'b -> 'b -> [> utf16_decode_error] -> 'c) -> 'a -> 'b -> 'c
 	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
 		Uchar.t -> 'b
 	type t = utf16_string
@@ -178,11 +196,13 @@ module UTF32: sig
 		fail:([> `illegal_sequence | `surrogate_fragment of int] -> int) -> elt -> int
 	val max_sequence: int
 	val is_trailing: elt -> bool
-	val decode3: ?illegal_sequence:exn -> ('d -> 'e -> elt) -> ('d -> 'e -> 'e) ->
-		('d -> 'e -> bool) -> 'a -> 'b -> 'c -> 'd -> 'e ->
-		('a -> 'b -> 'c -> 'd -> 'e -> Uchar.t -> 'f) -> 'f
-	val decode: ?illegal_sequence:exn -> ('a -> 'b -> elt) -> ('a -> 'b -> 'b) ->
-		('a -> 'b -> bool) -> 'a -> 'b -> ('a -> 'b -> Uchar.t -> 'c) -> 'c
+	val decode3: ('d -> 'e -> elt) -> ('d -> 'e -> 'e) -> ('d -> 'e -> bool) ->
+		('a -> 'b -> 'c -> 'd -> 'e -> 'e -> Uchar.t -> 'f) ->
+		fail:('a -> 'b -> 'c -> 'd -> 'e -> 'e -> [> utf32_decode_error] -> 'f) ->
+		'a -> 'b -> 'c -> 'd -> 'e -> 'f
+	val decode: ('a -> 'b -> elt) -> ('a -> 'b -> 'b) -> ('a -> 'b -> bool) ->
+		('a -> 'b -> 'b -> Uchar.t -> 'c) ->
+		fail:('a -> 'b -> 'b -> [> utf32_decode_error] -> 'c) -> 'a -> 'b -> 'c
 	val encode: ?illegal_sequence:exn -> ('a -> 'b -> elt -> 'b) -> 'a -> 'b ->
 		Uchar.t -> 'b
 	type t = utf32_string
