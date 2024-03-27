@@ -47,7 +47,16 @@ module type TS = sig
 	val blit: t -> int -> mutable_t -> int -> int -> unit
 	val lead: t -> int -> int
 	val rear: t -> int -> int
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
+	val get_code:
+		fail:(t -> int -> int ->
+			[>
+				| `illegal_sequence
+				| `overly_long of [`some of Uchar.t | `surrogate_fragment of int]
+				| `surrogate_fragment of int
+				| `truncated
+			] -> Uchar.t
+		) ->
+		t -> int ref -> Uchar.t
 	val set_code: fail:(mutable_t -> int -> [> `unexist] -> Uchar.t) ->
 		mutable_t -> int ref -> Uchar.t -> unit
 	val of_array: elt array -> t

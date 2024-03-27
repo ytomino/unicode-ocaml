@@ -42,7 +42,9 @@ val utf8_encode: ('a -> 'b -> utf8_char -> 'b) ->
 	fail:('a -> 'b -> [> `unexist] -> 'b) -> 'a -> 'b -> Uchar.t -> 'b
 val utf8_lead: utf8_string -> int -> int
 val utf8_rear: utf8_string -> int -> int
-val utf8_get_code: ?illegal_sequence:exn -> utf8_string -> int ref -> Uchar.t
+val utf8_get_code:
+	fail:(utf8_string -> int -> int -> [> utf8_decode_error] -> Uchar.t) ->
+	utf8_string -> int ref -> Uchar.t
 val utf8_set_code: fail:(bytes -> int -> [> `unexist] -> Uchar.t) ->
 	bytes -> int ref -> Uchar.t -> unit
 	[@@ocaml.deprecated]
@@ -66,7 +68,9 @@ val utf16_encode: ('a -> 'b -> utf16_char -> 'b) ->
 	fail:('a -> 'b -> [> `unexist] -> 'b) -> 'a -> 'b -> Uchar.t -> 'b
 val utf16_lead: utf16_string -> int -> int
 val utf16_rear: utf16_string -> int -> int
-val utf16_get_code: ?illegal_sequence:exn -> utf16_string -> int ref -> Uchar.t
+val utf16_get_code:
+	fail:(utf16_string -> int -> int -> [> utf16_decode_error] -> Uchar.t) ->
+	utf16_string -> int ref -> Uchar.t
 val utf16_set_code: fail:(utf16_string -> int -> [> `unexist] -> Uchar.t) ->
 	utf16_string -> int ref -> Uchar.t -> unit
 
@@ -90,16 +94,37 @@ val utf32_encode: ('a -> 'b -> utf32_char -> 'b) ->
 	fail:('a -> 'b -> [> ] -> 'b) -> 'a -> 'b -> Uchar.t -> 'b
 val utf32_lead: utf32_string -> int -> int
 val utf32_rear: utf32_string -> int -> int
-val utf32_get_code: ?illegal_sequence:exn -> utf32_string -> int ref -> Uchar.t
+val utf32_get_code:
+	fail:(utf32_string -> int -> int -> [> utf32_decode_error] -> Uchar.t) ->
+	utf32_string -> int ref -> Uchar.t
 val utf32_set_code: fail:(utf32_string -> int -> [> ] -> Uchar.t) ->
 	utf32_string -> int ref -> Uchar.t -> unit
 
-val utf8_of_utf16: ?illegal_sequence:exn -> utf16_string -> utf8_string
-val utf8_of_utf32: ?illegal_sequence:exn -> utf32_string -> utf8_string
-val utf16_of_utf8: ?illegal_sequence:exn -> utf8_string -> utf16_string
-val utf16_of_utf32: ?illegal_sequence:exn -> utf32_string -> utf16_string
-val utf32_of_utf8: ?illegal_sequence:exn -> utf8_string -> utf32_string
-val utf32_of_utf16: ?illegal_sequence:exn -> utf16_string -> utf32_string
+val utf8_of_utf16:
+	fail:(utf16_string -> int -> int -> [> utf16_decode_error | `unexist] ->
+		Uchar.t
+	) ->
+	utf16_string -> utf8_string
+val utf8_of_utf32:
+	fail:(utf32_string -> int -> int -> [> utf32_decode_error | `unexist] ->
+		Uchar.t
+	) ->
+	utf32_string -> utf8_string
+val utf16_of_utf8:
+	fail:(utf8_string -> int -> int -> [> utf8_decode_error | `unexist] -> Uchar.t
+	) ->
+	utf8_string -> utf16_string
+val utf16_of_utf32:
+	fail:(utf32_string -> int -> int -> [> utf32_decode_error | `unexist] ->
+		Uchar.t
+	) ->
+	utf32_string -> utf16_string
+val utf32_of_utf8:
+	fail:(utf8_string -> int -> int -> [> utf8_decode_error] -> Uchar.t) ->
+	utf8_string -> utf32_string
+val utf32_of_utf16:
+	fail:(utf16_string -> int -> int -> [> utf16_decode_error] -> Uchar.t) ->
+	utf16_string -> utf32_string
 
 module UTF8: sig
 	type elt = utf8_char
@@ -131,12 +156,21 @@ module UTF8: sig
 		"caml_blit_string" [@@ocaml.noalloc] [@@ocaml.deprecated]
 	val lead: t -> int -> int
 	val rear: t -> int -> int
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
+	val get_code: fail:(t -> int -> int -> [> utf8_decode_error] -> Uchar.t) ->
+		t -> int ref -> Uchar.t
 	val set_code: fail:(bytes -> int -> [> `unexist] -> Uchar.t) ->
 		bytes -> int ref -> Uchar.t -> unit
 		[@@ocaml.deprecated]
-	val of_utf16: ?illegal_sequence:exn -> utf16_string -> t
-	val of_utf32: ?illegal_sequence:exn -> utf32_string -> t
+	val of_utf16:
+		fail:(utf16_string -> int -> int -> [> utf16_decode_error | `unexist] ->
+			Uchar.t
+		) ->
+		utf16_string -> t
+	val of_utf32:
+		fail:(utf32_string -> int -> int -> [> utf32_decode_error | `unexist] ->
+			Uchar.t
+		) ->
+		utf32_string -> t
 	val of_array: elt array -> t
 end
 
@@ -162,7 +196,8 @@ module UTF8_Bytes: sig
 		[@@ocaml.noalloc]
 	val lead: t -> int -> int
 	val rear: t -> int -> int
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
+	val get_code: fail:(t -> int -> int -> [> utf8_decode_error] -> Uchar.t) ->
+		t -> int ref -> Uchar.t
 	val set_code: fail:(t -> int -> [> `unexist] -> Uchar.t) ->
 		t -> int ref -> Uchar.t -> unit
 	val of_array: elt array -> t
@@ -201,11 +236,19 @@ module UTF16: sig
 	val blit: t -> int -> t -> int -> int -> unit
 	val lead: t -> int -> int
 	val rear: t -> int -> int
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
+	val get_code: fail:(t -> int -> int -> [> utf16_decode_error] -> Uchar.t) ->
+		t -> int ref -> Uchar.t
 	val set_code: fail:(t -> int -> [> `unexist] -> Uchar.t) ->
 		t -> int ref -> Uchar.t -> unit
-	val of_utf8: ?illegal_sequence:exn -> utf8_string -> t
-	val of_utf32: ?illegal_sequence:exn -> utf32_string -> t
+	val of_utf8:
+		fail:(utf8_string -> int -> int -> [> utf8_decode_error | `unexist] -> Uchar.t
+		) ->
+		utf8_string -> t
+	val of_utf32:
+		fail:(utf32_string -> int -> int -> [> utf32_decode_error | `unexist] ->
+			Uchar.t
+		) ->
+		utf32_string -> t
 	val of_array: elt array -> t
 end
 
@@ -243,10 +286,15 @@ module UTF32: sig
 	val blit: t -> int -> t -> int -> int -> unit
 	val lead: t -> int -> int
 	val rear: t -> int -> int
-	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
+	val get_code: fail:(t -> int -> int -> [> utf32_decode_error] -> Uchar.t) ->
+		t -> int ref -> Uchar.t
 	val set_code: fail:(t -> int -> [> ] -> Uchar.t) ->
 		t -> int ref -> Uchar.t -> unit
-	val of_utf8: ?illegal_sequence:exn -> utf8_string -> t
-	val of_utf16: ?illegal_sequence:exn -> utf16_string -> t
+	val of_utf8:
+		fail:(utf8_string -> int -> int -> [> utf8_decode_error] -> Uchar.t) ->
+		utf8_string -> t
+	val of_utf16:
+		fail:(utf16_string -> int -> int -> [> utf32_decode_error] -> Uchar.t) ->
+		utf16_string -> t
 	val of_array: elt array -> t
 end

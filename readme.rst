@@ -73,27 +73,6 @@ Functions
 ``utfXX_of_utfXX``    new string converted from a string
 ===================== =========================================================
 
-Policy for handling illegal sequence
-++++++++++++++++++++++++++++++++++++
-
-When some illegal sequence is found,
-
-If the optional parameter ``?illegal_sequence`` is given, the functions will
-raise it.
-
-Otherwise, the functions will continue as if the missing element were present.
-
-======== ==================================================
-shortage L3 T N... will be separated as [L3 T "0"] [N...]
-too many L2 T T N... will be separated as [L2 T] [T] [N...]
-======== ==================================================
-
-(LX means some leading element of sequence having X elements, T means some
-trailing element, N means the start of the next sequence.)
-
-And such as overlong encoded code points or halfs of surrogate pair will be
-taken as normal code point.
-
 Limitations
 +++++++++++
 
