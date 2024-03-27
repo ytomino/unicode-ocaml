@@ -48,8 +48,8 @@ module type TS = sig
 	val lead: t -> int -> int
 	val rear: t -> int -> int
 	val get_code: ?illegal_sequence:exn -> t -> int ref -> Uchar.t
-	val set_code: ?illegal_sequence:exn -> mutable_t -> int ref -> Uchar.t ->
-		unit
+	val set_code: fail:(mutable_t -> int -> [> `unexist] -> Uchar.t) ->
+		mutable_t -> int ref -> Uchar.t -> unit
 	val of_array: elt array -> t
 end;;
 

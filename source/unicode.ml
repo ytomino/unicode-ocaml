@@ -60,6 +60,8 @@ let finish_get_code _ _ (c: int ref) _ _ (e': int) (result: Uchar.t) = (
 	result
 );;
 
+let fail_encode (loc: string) _ _ _ _ _ _ _ = failwith loc;;
+
 let optional_raise (e: exn option) = (
 	match e with
 	| Some e -> raise e
@@ -348,16 +350,17 @@ let utf8_get_code ?(illegal_sequence: exn option) (source: utf8_string)
 		() illegal_sequence index source !index
 );;
 
-let utf8_set_code ?(illegal_sequence: exn option) (dest: bytes)
-	(index: int ref) (code: Uchar.t) =
+let utf8_set_code ~(fail: bytes -> int -> [> `unexist] -> Uchar.t)
+	(dest: bytes) (index: int ref) (code: Uchar.t) =
 (
 	index :=
 		utf8_encode4 utf8_add
-			~fail:(fun _ _ _ illegal_sequence dest index _ ->
-				optional_raise illegal_sequence;
-				utf8_substitute dest index
+			~fail:(fun _ _ _ fail dest index error ->
+				let alt = fail dest index error in
+				utf8_encode4 utf8_add ~fail:(fail_encode "utf8_set_code")
+					() () () () dest index alt
 			)
-			() () () illegal_sequence dest !index code
+			() () () fail dest !index code
 );;
 
 let utf16_get: utf16_string -> int -> utf16_char = Bigarray.Array1.get;;
@@ -495,16 +498,17 @@ let utf16_get_code ?(illegal_sequence: exn option) (source: utf16_string)
 		() illegal_sequence index source !index
 );;
 
-let utf16_set_code ?(illegal_sequence: exn option) (dest: utf16_string)
-	(index: int ref) (code: Uchar.t) =
+let utf16_set_code ~(fail: utf16_string -> int -> [> `unexist] -> Uchar.t)
+	(dest: utf16_string) (index: int ref) (code: Uchar.t) =
 (
 	index :=
 		utf16_encode4 utf16_add
-			~fail:(fun _ _ _ illegal_sequence dest index _ ->
-				optional_raise illegal_sequence;
-				utf16_substitute dest index
+			~fail:(fun _ _ _ fail dest index error ->
+				let alt = fail dest index error in
+				utf16_encode4 utf16_add ~fail:(fail_encode "utf16_set_code")
+					() () () () dest index alt
 			)
-			() () () illegal_sequence dest !index code
+			() () () fail dest !index code
 );;
 
 let utf32_get (source: utf32_string) (index: int) = (
@@ -600,8 +604,8 @@ let utf32_get_code ?(illegal_sequence: exn option) (source: utf32_string)
 		() illegal_sequence index source !index
 );;
 
-let utf32_set_code ?illegal_sequence:(_: exn option) (dest: utf32_string)
-	(index: int ref) (code: Uchar.t) =
+let utf32_set_code ~fail:(_: utf32_string -> int -> [> ] -> Uchar.t)
+	(dest: utf32_string) (index: int ref) (code: Uchar.t) =
 (
 	index := utf32_encode4 utf32_add ~fail:() () () () () dest !index code
 );;
