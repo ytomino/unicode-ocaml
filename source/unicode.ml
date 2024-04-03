@@ -69,6 +69,10 @@ let fail_decode (type t error) _ (fail: t -> int -> int -> error -> Uchar.t)
 
 let fail_encode (loc: string) _ _ _ _ _ _ _ = failwith loc;;
 
+let is_in_17planes (code: int) = (
+	code <= 0x10ffff && (Sys.word_size > 32 || code >= 0)
+);;
+
 let is_not_surrogate_fragment (code: int) = (
 	code land lnot 0x07ff <> 0xd800
 );;
@@ -156,7 +160,9 @@ let utf8_storing_length (code: int) = (
 
 type utf8_decode_error = [
 	| `illegal_sequence
-	| `overly_long of [`some of Uchar.t | `surrogate_fragment of int]
+	| `over_17planes of int
+	| `overly_long of
+		[`over_17planes of int | `some of Uchar.t | `surrogate_fragment of int]
 	| `surrogate_fragment of int
 	| `truncated
 ];;
@@ -184,14 +190,18 @@ let utf8_decode3: type a b c d e f. (d -> e -> utf8_char) -> (d -> e -> e) ->
 		if offset <= 0 then (
 			(* Finish. *)
 			if utf8_storing_length code = length then (
-				if is_not_surrogate_fragment code
-				then cont_f a b c d e e' (Uchar.unsafe_of_int code)
-				else fail a b c d e e' (`surrogate_fragment code)
+				if is_in_17planes code then (
+					if is_not_surrogate_fragment code
+					then cont_f a b c d e e' (Uchar.unsafe_of_int code)
+					else fail a b c d e e' (`surrogate_fragment code)
+				) else fail a b c d e e' (`over_17planes code)
 			) else
 				fail a b c d e e' (
 					`overly_long (
-						if is_not_surrogate_fragment code then `some (Uchar.unsafe_of_int code)
-						else `surrogate_fragment code
+						if is_in_17planes code then (
+							if is_not_surrogate_fragment code then `some (Uchar.unsafe_of_int code)
+							else `surrogate_fragment code
+						) else `over_17planes code
 					)
 				)
 		) else if not (end_f d e') then (
@@ -454,7 +464,8 @@ let utf32_add (dest: utf32_string) (index: int) (item: utf32_char) = (
 	index + 1
 );;
 
-type utf32_decode_error = [`illegal_sequence | `surrogate_fragment of int];;
+type utf32_decode_error =
+	[`illegal_sequence | `over_17planes of int | `surrogate_fragment of int];;
 
 let utf32_sequence
 	~(fail: [> `illegal_sequence | `surrogate_fragment of int] -> int)
@@ -479,10 +490,12 @@ let utf32_decode3 (type a b c d e f) (get_f: d -> e -> utf32_char)
 	let e' = inc_f d e in
 	if Uint32.is_uint31 result then (
 		let result = Uint32.to_int result in
-		if is_not_surrogate_fragment result then (
-			let result = Uchar.unsafe_of_int result in
-			cont_f a b c d e e' result
-		) else fail a b c d e e' (`surrogate_fragment result)
+		if is_in_17planes result then (
+			if is_not_surrogate_fragment result then (
+				let result = Uchar.unsafe_of_int result in
+				cont_f a b c d e e' result
+			) else fail a b c d e e' (`surrogate_fragment result)
+		) else fail a b c d e e' (`over_17planes result)
 	) else fail a b c d e e' `illegal_sequence
 );;
 

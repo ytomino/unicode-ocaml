@@ -17,7 +17,9 @@ let utf8_recovery: Unicode.utf8_string -> int -> int ->
 		Uchar.unsafe_of_int (lead + 0x7fffff00)
 	| `overly_long (`some x) ->
 		x
-	| `overly_long (`surrogate_fragment x) | `surrogate_fragment x ->
+	| `over_17planes x
+	| `overly_long (`over_17planes x | `surrogate_fragment x)
+	| `surrogate_fragment x ->
 		Uchar.unsafe_of_int x
 	| `truncated ->
 		(* Calculate with supposition that the trailing is 0. *)
@@ -54,7 +56,7 @@ let utf32_recovery (source: Unicode.utf32_string) (pos: int) (_: int)
 	| `illegal_sequence ->
 		Uchar.unsafe_of_int
 			(Unicode.Uint32.to_int (Unicode.UTF32.unsafe_get source pos))
-	| `surrogate_fragment x ->
+	| `over_17planes x | `surrogate_fragment x ->
 		Uchar.unsafe_of_int x
 );;
 
@@ -82,7 +84,7 @@ assert (
 				utf8_recovery source old_i i `illegal_sequence
 			| `unexist -> (* at second *)
 				Uchar.of_int 0x10ffff
-			| `overly_long _ | `surrogate_fragment _ | `truncated ->
+			| `over_17planes _ | `overly_long _ | `surrogate_fragment _ | `truncated ->
 				assert false
 		)
 		"\xff"
@@ -156,6 +158,15 @@ iter_check_utf16 (utf16_of_array [| 0xd800; 0xdc00; 0xdc00 |]) [| 0; 2 |];;
 
 (* UTF-8 corners *)
 
+let utf8_over_17planes reported source old_i i error = (
+	match error with
+	| `over_17planes _ ->
+		reported := true;
+		utf8_recovery source old_i i error
+	| `illegal_sequence | `overly_long _ | `surrogate_fragment _ | `truncated ->
+		assert false
+);;
+
 assert (
 	let s = "\x7f" in
 	let i = ref 0 in
@@ -202,43 +213,61 @@ assert (
 assert (
 	let s = "\xf4\x90\x80\x80" in
 	let i = ref 0 in
-	Unicode.utf8_get_code ~fail:(fail __LOC__) s i = Uchar.unsafe_of_int 0x110000
+	let reported = ref false in
+	Unicode.utf8_get_code ~fail:(utf8_over_17planes reported) s i
+		= Uchar.unsafe_of_int 0x110000
 	&& !i = 4
+	&& !reported
 );;
 
 assert (
 	let s = "\xf7\xbf\xbf\xbf" in
 	let i = ref 0 in
-	Unicode.utf8_get_code ~fail:(fail __LOC__) s i = Uchar.unsafe_of_int 0x1fffff
+	let reported = ref false in
+	Unicode.utf8_get_code ~fail:(utf8_over_17planes reported) s i
+		= Uchar.unsafe_of_int 0x1fffff
 	&& !i = 4
+	&& !reported
 );;
 
 assert (
 	let s = "\xf8\x88\x80\x80\x80" in
 	let i = ref 0 in
-	Unicode.utf8_get_code ~fail:(fail __LOC__) s i = Uchar.unsafe_of_int 0x200000
+	let reported = ref false in
+	Unicode.utf8_get_code ~fail:(utf8_over_17planes reported) s i
+		= Uchar.unsafe_of_int 0x200000
 	&& !i = 5
+	&& !reported
 );;
 
 assert (
 	let s = "\xfb\xbf\xbf\xbf\xbf" in
 	let i = ref 0 in
-	Unicode.utf8_get_code ~fail:(fail __LOC__) s i = Uchar.unsafe_of_int 0x3ffffff
+	let reported = ref false in
+	Unicode.utf8_get_code ~fail:(utf8_over_17planes reported) s i
+		= Uchar.unsafe_of_int 0x3ffffff
 	&& !i = 5
+	&& !reported
 );;
 
 assert (
 	let s = "\xfc\x84\x80\x80\x80\x80" in
 	let i = ref 0 in
-	Unicode.utf8_get_code ~fail:(fail __LOC__) s i = Uchar.unsafe_of_int 0x4000000
+	let reported = ref false in
+	Unicode.utf8_get_code ~fail:(utf8_over_17planes reported) s i =
+		Uchar.unsafe_of_int 0x4000000
 	&& !i = 6
+	&& !reported
 );;
 
 assert (
 	let s = "\xfd\xbf\xbf\xbf\xbf\xbf" in
 	let i = ref 0 in
-	Unicode.utf8_get_code ~fail:(fail __LOC__) s i = Uchar.unsafe_of_int 0x7fffffff
+	let reported = ref false in
+	Unicode.utf8_get_code ~fail:(utf8_over_17planes reported) s i
+		= Uchar.unsafe_of_int 0x7fffffff
 	&& !i = 6
+	&& !reported
 );;
 
 (* UTF-8 illegal sequence *)
@@ -248,7 +277,7 @@ let utf8_illegal_sequence reported source old_i i error = (
 	| `illegal_sequence ->
 		reported := true;
 		utf8_recovery source old_i i `illegal_sequence
-	| `overly_long _ | `surrogate_fragment _ | `truncated ->
+	| `over_17planes _ | `overly_long _ | `surrogate_fragment _ | `truncated ->
 		assert false
 );;
 
@@ -257,7 +286,8 @@ let utf8_truncated reported source old_i i error = (
 	| `truncated ->
 		reported := true;
 		utf8_recovery source old_i i `truncated
-	| `illegal_sequence | `overly_long _ | `surrogate_fragment _ ->
+	| `illegal_sequence | `over_17planes _ | `overly_long _
+	| `surrogate_fragment _ ->
 		assert false
 );;
 
@@ -407,6 +437,34 @@ assert (
 	&& !reported
 );;
 
+(* UTF-32 corners *)
+
+let utf32_over_17planes reported source old_i i error = (
+	match error with
+	| `over_17planes _ ->
+		reported := true;
+		utf32_recovery source old_i i error
+	| `illegal_sequence | `surrogate_fragment _ ->
+		assert false
+);;
+
+assert (
+	let s = Unicode.UTF32.of_array [| Unicode.Uint32.of_int32 0x0010ffffl |] in
+	let i = ref 0 in
+	Unicode.utf32_get_code ~fail:(fail __LOC__) s i = Uchar.unsafe_of_int 0x10ffff
+	&& !i = 1
+);;
+
+assert (
+	let s = Unicode.UTF32.of_array [| Unicode.Uint32.of_int32 0x00110000l |] in
+	let i = ref 0 in
+	let reported = ref false in
+	Unicode.utf32_get_code ~fail:(utf32_over_17planes reported) s i
+		= Uchar.unsafe_of_int 0x110000
+	&& !i = 1
+	&& !reported
+);;
+
 (* UTF-32 illegal sequence *)
 
 let utf32_illegal_sequence reported source old_i i error = (
@@ -414,7 +472,7 @@ let utf32_illegal_sequence reported source old_i i error = (
 	| `illegal_sequence ->
 		reported := true;
 		utf32_recovery source old_i i `illegal_sequence
-	| `surrogate_fragment _ ->
+	| `over_17planes _ | `surrogate_fragment _ ->
 		assert false
 );;
 

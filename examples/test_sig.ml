@@ -9,7 +9,9 @@ module type ES = sig
 		fail:('a -> 'b -> 'c -> 'd -> 'e -> 'e ->
 			[>
 				| `illegal_sequence
-				| `overly_long of [`some of Uchar.t | `surrogate_fragment of int]
+				| `over_17planes of int
+				| `overly_long of
+					[`over_17planes of int | `some of Uchar.t | `surrogate_fragment of int]
 				| `surrogate_fragment of int
 				| `truncated
 			] -> 'f
@@ -20,7 +22,9 @@ module type ES = sig
 		fail:('a -> 'b -> 'b ->
 			[>
 				| `illegal_sequence
-				| `overly_long of [`some of Uchar.t | `surrogate_fragment of int]
+				| `over_17planes of int
+				| `overly_long of
+					[`over_17planes of int | `some of Uchar.t | `surrogate_fragment of int]
 				| `surrogate_fragment of int
 				| `truncated
 			] -> 'c
@@ -51,7 +55,9 @@ module type TS = sig
 		fail:(t -> int -> int ->
 			[>
 				| `illegal_sequence
-				| `overly_long of [`some of Uchar.t | `surrogate_fragment of int]
+				| `over_17planes of int
+				| `overly_long of
+					[`over_17planes of int | `some of Uchar.t | `surrogate_fragment of int]
 				| `surrogate_fragment of int
 				| `truncated
 			] -> Uchar.t

@@ -21,7 +21,9 @@ type utf32_string =
 
 type utf8_decode_error = [
 	| `illegal_sequence
-	| `overly_long of [`some of Uchar.t | `surrogate_fragment of int]
+	| `over_17planes of int
+	| `overly_long of
+		[`over_17planes of int | `some of Uchar.t | `surrogate_fragment of int]
 	| `surrogate_fragment of int
 	| `truncated
 ]
@@ -74,7 +76,8 @@ val utf16_get_code:
 val utf16_set_code: fail:(utf16_string -> int -> [> `unexist] -> Uchar.t) ->
 	utf16_string -> int ref -> Uchar.t -> unit
 
-type utf32_decode_error = [`illegal_sequence | `surrogate_fragment of int]
+type utf32_decode_error =
+	[`illegal_sequence | `over_17planes of int | `surrogate_fragment of int]
 
 val utf32_sequence:
 	fail:([> `illegal_sequence | `surrogate_fragment of int] -> int) ->
