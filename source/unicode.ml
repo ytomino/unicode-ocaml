@@ -187,30 +187,31 @@ let utf8_decode3: type a b c d e f. (d -> e -> utf8_char) -> (d -> e -> e) ->
 	fail:(a -> b -> c -> d -> e -> e -> [> utf8_decode_error] -> f) ->
 	a -> b -> c -> d -> e -> f =
 	let rec tails get_f inc_f end_f fail cont_f a b c d e e' length offset code = (
-		if offset <= 0 then (
-			(* Finish. *)
-			if utf8_storing_length code = length then (
-				if is_in_17planes code then (
-					if is_not_surrogate_fragment code
-					then cont_f a b c d e e' (Uchar.unsafe_of_int code)
-					else fail a b c d e e' (`surrogate_fragment code)
-				) else fail a b c d e e' (`over_17planes code)
-			) else
-				fail a b c d e e' (
-					`overly_long (
-						if is_in_17planes code then (
-							if is_not_surrogate_fragment code then `some (Uchar.unsafe_of_int code)
-							else `surrogate_fragment code
-						) else `over_17planes code
-					)
-				)
-		) else if not (end_f d e') then (
+		if not (end_f d e') then (
 			let tail = get_f d e' in
 			if utf8_is_trailing tail then (
 				let tail = int_of_char tail in
 				let e' = inc_f d e' in
-				tails get_f inc_f end_f fail cont_f a b c d e e' length (offset - 6)
-					(code lsl 6 lor (tail land 0b00111111))
+				let code = code lsl 6 lor (tail land 0b00111111) in
+				let offset = offset - 6 in
+				if offset <= 0 then (
+					(* Finish. *)
+					if utf8_storing_length code = length then (
+						if is_in_17planes code then (
+							if is_not_surrogate_fragment code
+							then cont_f a b c d e e' (Uchar.unsafe_of_int code)
+							else fail a b c d e e' (`surrogate_fragment code)
+						) else fail a b c d e e' (`over_17planes code)
+					) else
+						fail a b c d e e' (
+							`overly_long (
+								if is_in_17planes code then (
+									if is_not_surrogate_fragment code then `some (Uchar.unsafe_of_int code)
+									else `surrogate_fragment code
+								) else `over_17planes code
+							)
+						)
+				) else tails get_f inc_f end_f fail cont_f a b c d e e' length offset code
 			) else fail a b c d e e' `truncated
 		) else fail a b c d e e' `truncated
 	) in
@@ -242,12 +243,12 @@ let utf8_encode4: type a b c d e f. (e -> f -> utf8_char -> f) ->
 	fail:(a -> b -> c -> d -> e -> f -> [> `unexist] -> f) ->
 	a -> b -> c -> d -> e -> f -> Uchar.t -> f =
 	let rec tails add_f offset e f code = (
-		if offset <= 0 then f else
 		let offset = offset - 6 in
 		let f =
 			add_f e f (char_of_int (code lsr offset land 0b00111111 lor 0b10000000))
 		in
-		tails add_f offset e f code
+		if offset <= 0 then f
+		else tails add_f offset e f code
 	) in
 	fun add_f ~fail a b c d e f code ->
 	(* without checking surrogate pair in set *)
