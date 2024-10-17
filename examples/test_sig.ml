@@ -80,15 +80,15 @@ end;; (* mutable version of TS *)
 
 open Unicode;;
 
-let (_: unit) =
+let _: unit =
 	let module Check: ES = UTF8 in
 	let module Check: TS with type mutable_t := bytes = UTF8 in ();;
-let (_: unit) =
+let _: unit =
 	let module Check: MS = UTF8_Bytes in ();;
-let (_: unit) =
+let _: unit =
 	let module Check: ES = UTF16 in
 	let module Check: MS = UTF16 in ();;
-let (_: unit) =
+let _: unit =
 	let module Check: ES = UTF32 in
 	let module Check: MS = UTF32 in ();;
 
