@@ -42,7 +42,8 @@ let xs = [
 	x_fffffffe;
 	of_array [| 0xfffffffel; 0xfffffffel |];
 	of_array [| 0xfffffffel; 0xffffffffl |];
-	x_ffffffff]
+	x_ffffffff
+]
 in
 assert (UTF32.compare UTF32.empty UTF32.empty = 0);
 assert (UTF32.compare UTF32.empty x_0000 < 0);

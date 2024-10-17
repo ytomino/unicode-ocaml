@@ -291,37 +291,53 @@ let utf8_truncated reported source old_i i error = (
 		assert false
 );;
 
-let iseq8_1 = Unicode.UTF8.of_array [|
-	char_of_int 0b11110001 |];; (* few *)
-let iseq8_2 = Unicode.UTF8.of_array [|
-	char_of_int 0b11110001;
-	char_of_int 0b10000000 |];; (* few *)
-let iseq8_3 = Unicode.UTF8.of_array [|
-	char_of_int 0b11110001;
-	char_of_int 0b10000000;
-	char_of_int 0b10000000 |];; (* few *)
-let iseq8_4 = Unicode.UTF8.of_array [|
-	char_of_int 0b11110001;
-	char_of_int 0b10000000;
-	char_of_int 0b10000000;
-	char_of_int 0b10000000 |];; (* just *)
-let iseq8_5 = Unicode.UTF8.of_array [|
-	char_of_int 0b11110001;
-	char_of_int 0b10000000;
-	char_of_int 0b10000000;
-	char_of_int 0b10000000;
-	char_of_int 0b10000000 |];; (* remainder *)
-let iseq8_6 = Unicode.UTF8.of_array [|
-	char_of_int 0b11110001;
-	char_of_int 0b10000000; (* few *)
-	char_of_int 0b11000000 |];; (* next leading *)
-let iseq8_7 = Unicode.UTF8.of_array [|
-	char_of_int 0b11110001;
-	char_of_int 0b10000000;
-	char_of_int 0b10000000; (* few *)
-	char_of_int 0b11000000 |];; (* next leading *)
-let iseq8_8 = Unicode.UTF8.of_array [|
-	char_of_int 0b10101010 |];; (* start from trailing byte *)
+let iseq8_1 =
+	Unicode.UTF8.of_array [|
+		char_of_int 0b11110001
+	|];; (* few *)
+let iseq8_2 =
+	Unicode.UTF8.of_array [|
+		char_of_int 0b11110001;
+		char_of_int 0b10000000
+	|];; (* few *)
+let iseq8_3 =
+	Unicode.UTF8.of_array [|
+		char_of_int 0b11110001;
+		char_of_int 0b10000000;
+		char_of_int 0b10000000
+	|];; (* few *)
+let iseq8_4 =
+	Unicode.UTF8.of_array [|
+		char_of_int 0b11110001;
+		char_of_int 0b10000000;
+		char_of_int 0b10000000;
+		char_of_int 0b10000000
+	|];; (* just *)
+let iseq8_5 =
+	Unicode.UTF8.of_array [|
+		char_of_int 0b11110001;
+		char_of_int 0b10000000;
+		char_of_int 0b10000000;
+		char_of_int 0b10000000;
+		char_of_int 0b10000000
+	|];; (* remainder *)
+let iseq8_6 =
+	Unicode.UTF8.of_array [|
+		char_of_int 0b11110001;
+		char_of_int 0b10000000; (* few *)
+		char_of_int 0b11000000
+	|];; (* next leading *)
+let iseq8_7 =
+	Unicode.UTF8.of_array [|
+		char_of_int 0b11110001;
+		char_of_int 0b10000000;
+		char_of_int 0b10000000; (* few *)
+		char_of_int 0b11000000
+	|];; (* next leading *)
+let iseq8_8 =
+	Unicode.UTF8.of_array [|
+		char_of_int 0b10101010
+	|];; (* start from trailing byte *)
 
 assert (
 	let i = ref 0 in
