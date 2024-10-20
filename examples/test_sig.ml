@@ -42,6 +42,7 @@ module type TS = sig
 	type t
 	type mutable_t
 	val compare: t -> t -> int
+	val equal: t -> t -> bool
 	val length: t -> int
 	val get: t -> int -> elt
 	val unsafe_get: t -> int -> elt

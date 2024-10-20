@@ -757,6 +757,7 @@ module UTF16 = struct
 	include (Bigarray.Array1: BA1_without_t);;
 	type t = utf16_string;;
 	external compare: t -> t -> int = "%compare";;
+	external equal: t -> t -> bool = "%equal";;
 	external length: t -> int = "%caml_ba_dim_1";;
 	let empty = Bigarray.Array1.of_array Bigarray.int16_unsigned Bigarray.c_layout
 		[| |];;
@@ -794,6 +795,7 @@ module UTF32 = struct
 			compare x y min_length (i + 1)
 		) in
 		fun x y -> compare x y (min (dim x) (dim y)) 0;;
+	external equal: t -> t -> bool = "%equal";; (* that compares with signed *)
 	external length: t -> int = "%caml_ba_dim_1";;
 	let get = utf32_get;;
 	let unsafe_get = utf32_unsafe_get;;

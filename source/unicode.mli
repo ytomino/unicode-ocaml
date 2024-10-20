@@ -148,6 +148,7 @@ module UTF8: sig
 		'a -> 'b -> Uchar.t -> 'b
 	type t = utf8_string
 	val compare: t -> t -> int
+	val equal: t -> t -> bool
 	external length: t -> int = "%string_length"
 	external get: t -> int -> elt = "%string_safe_get"
 	external unsafe_get: t -> int -> elt = "%string_unsafe_get"
@@ -181,6 +182,7 @@ module UTF8_Bytes: sig
 	type elt = utf8_char
 	type t = bytes
 	val compare: t -> t -> int
+	val equal: t -> t -> bool
 	external length: t -> int = "%bytes_length"
 	external get: t -> int -> elt = "%bytes_safe_get"
 	external unsafe_get: t -> int -> elt = "%bytes_unsafe_get"
@@ -225,6 +227,7 @@ module UTF16: sig
 		'a -> 'b -> Uchar.t -> 'b
 	type t = utf16_string
 	external compare: t -> t -> int = "%compare"
+	external equal: t -> t -> bool = "%equal"
 	external length: t -> int = "%caml_ba_dim_1"
 	external get: t -> int -> elt = "%caml_ba_ref_1"
 	external unsafe_get: t -> int -> elt = "%caml_ba_unsafe_ref_1"
@@ -275,6 +278,7 @@ module UTF32: sig
 		fail:('a -> 'b -> [> ] -> 'b) -> 'a -> 'b -> Uchar.t -> 'b
 	type t = utf32_string
 	val compare: t -> t -> int
+	external equal: t -> t -> bool = "%equal"
 	external length: t -> int = "%caml_ba_dim_1"
 	val get: t -> int -> elt
 	val unsafe_get: t -> int -> elt
