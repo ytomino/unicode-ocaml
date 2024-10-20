@@ -81,6 +81,7 @@ module type Uint32_S = sig
 	type t [@@ocaml.immediate64]
 	val zero: t
 	val compare: t -> t -> int
+	val equal: t -> t -> bool
 	val is_uint31: t -> bool
 	val of_int: int -> t
 	val of_int32: int32 -> t
@@ -93,6 +94,7 @@ module Non_immediate_Uint32 = struct
 	type t = int32;;
 	let zero = Int32.zero
 	let compare = Int32.unsigned_compare;;
+	let equal = Int32.equal;;
 	let is_uint31 x = x >= 0l;;
 	let of_int x = (
 		if Sys.word_size <= 32 then Int32.logand (Int32.of_int x) 0x7fffffffl else
@@ -111,6 +113,7 @@ module Immediate_Uint32 = struct
 	type t = int;;
 	let zero = Int.zero;;
 	let compare = Int.compare;;
+	let equal = Int.equal;;
 	let is_uint31 x = x land lnot 0x7fffffff = 0;;
 	let of_int x = x land (1 lsl 32 - 1);;
 	let of_int32 x = Int32.to_int x land (1 lsl 32 - 1);;
