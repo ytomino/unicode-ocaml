@@ -109,7 +109,7 @@ end;;
 
 module Immediate_Uint32 = struct
 	type t = int;;
-	let zero = Int.zero
+	let zero = Int.zero;;
 	let compare = Int.compare;;
 	let is_uint31 x = x land lnot 0x7fffffff = 0;;
 	let of_int x = x land (1 lsl 32 - 1);;

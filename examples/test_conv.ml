@@ -89,7 +89,7 @@ assert (
 		)
 		"\xff"
 	= Unicode.UTF16.of_array [| 0xdbff; 0xdfff |]
-);
+);;
 
 (* lead/rear *)
 

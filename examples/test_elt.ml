@@ -36,7 +36,7 @@ assert (UTF8.is_trailing (char_of_int 0xaa));;
 assert (UTF8.is_trailing (char_of_int 0xbf));;
 assert (not (UTF8.is_trailing (char_of_int 0xc0)));;
 for i = 0xc to 0xf do
-	assert (not (UTF8.is_trailing (char_of_int (i * 0x10 lor 0xf))));
+	assert (not (UTF8.is_trailing (char_of_int (i * 0x10 lor 0xf))))
 done;;
 
 for i = 0 to 0xdb do
@@ -54,8 +54,8 @@ done;;
 assert (UTF16.is_trailing (0xdc00 lor 0x10000));; (* masked *)
 assert (UTF16.is_trailing (0xdfff lor lnot 0xffff));; (* masked *)
 
-assert (not (UTF32.is_trailing Uint32.zero));
-assert (not (UTF32.is_trailing (Uint32.of_int32 0xffffffffl)));
+assert (not (UTF32.is_trailing Uint32.zero));;
+assert (not (UTF32.is_trailing (Uint32.of_int32 0xffffffffl)));;
 
 (* report *)
 
