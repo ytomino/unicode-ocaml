@@ -1,6 +1,14 @@
 very very simple unicode library for Objective-Caml
 ===================================================
 
+GitHubから `codeberg.org`_ への移行を試し中です。
+ご迷惑をおかけします。
+
+I'm trying to migrate from GitHub to `codeberg.org`_.
+Excuse me for troubling you.
+
+.. _`codeberg.org`: https://codeberg.org/ytomino/unicode-ocaml
+
 What's this?
 ------------
 
